@@ -23,20 +23,18 @@ import java.util.stream.Collectors
 
 
 class AntlrViewApp : Application() {
-    var grammar: TextArea? = null
-    var text: TextArea? = null
-    var resultPane: VBox = VBox()
-    var outputPane: TabPane = TabPane()
-    var resultsTab: Tab = Tab("Results", Label())
-    var errors: TableView<ErrorMessage> = TableView()
+    private val hack = Font.loadFont(javaClass.getResource("/Hack-Regular.ttf").toExternalForm(), 15.0)
+    private val grammar: TextArea = createGrammarEditor()
+    private val text: TextArea = createGrammarEditor()
+    private val resultPane: VBox = VBox()
+    private val outputPane: TabPane = TabPane()
+    private val resultsTab: Tab = Tab("Results", Label())
+    private val errors: TableView<ErrorMessage> = TableView()
 
     override fun start(primaryStage: Stage?) {
         primaryStage?.title = "ANTLR in the Headlights"
         primaryStage?.width = 1200.0
         primaryStage?.height = 800.0
-
-        grammar = createGrammarEditor()
-        text = createGrammarEditor()
 
         outputPane.tabs?.add(resultsTab)
         outputPane.tabs?.add(Tab("Errors", errors))
@@ -46,7 +44,7 @@ class AntlrViewApp : Application() {
 
 
         if (parameters.named.containsKey("grammar")) {
-            grammar?.text = loadFile(parameters.named["grammar"])
+            grammar.text = loadFile(parameters.named["grammar"])
         }
         if (parameters.named.containsKey("text")) {
             text?.text = loadFile(parameters.named["text"])
@@ -75,22 +73,21 @@ class AntlrViewApp : Application() {
         mainContainer.orientation = Orientation.VERTICAL
         mainContainer.items.add(
             vboxOf(
-                growing = grammar!!,
+                growing = grammar,
                 hbGrammar,
-                grammar!!
+                grammar
             )
         )
         mainContainer.items.add(
             vboxOf(
-                growing = text!!,
+                growing = text,
                 hbText,
-                text!!,
+                text,
                 createBottomBar()
             )
         )
         mainContainer.items.add(vboxOf(growing = resultPane, resultPane))
         mainContainer.setDividerPositions(0.3, 0.6);
-
         mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
 
         primaryStage?.scene = Scene(mainContainer)
@@ -128,13 +125,13 @@ class AntlrViewApp : Application() {
 
     private fun createGrammarEditor(): TextArea {
         val result = TextArea()
-        result.font = Font("monospace", 15.0)
+        result.font = hack
         return result
     }
 
     private fun onParseClicked() {
         try {
-            val antlrResult = AntlrGen.generateTree(grammar?.text ?: "", text?.text ?: "")
+            val antlrResult = AntlrGen.generateTree(grammar.text ?: "", text.text ?: "")
 
             populateErrorList(antlrResult.errors)
 
