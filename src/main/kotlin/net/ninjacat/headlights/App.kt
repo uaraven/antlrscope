@@ -1,6 +1,7 @@
 package net.ninjacat.headlights
 
 import javafx.application.Application
+import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
@@ -8,6 +9,8 @@ import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
+import javafx.scene.input.KeyEvent
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -48,7 +51,6 @@ class AntlrViewApp : Application() {
         val editorSplit = configureEditors()
 
 
-
         val mainContainer = SplitPane()
         mainContainer.orientation = Orientation.VERTICAL
         mainContainer.items.addAll(
@@ -62,6 +64,9 @@ class AntlrViewApp : Application() {
     }
 
     private fun configureEditors(): SplitPane {
+        val grammarPosition = createCaretPositionIndicator(grammar)
+        val textPosition = createCaretPositionIndicator(text)
+
         if (parameters.named.containsKey("grammar")) {
             grammar.text = loadFile(parameters.named["grammar"])
         }
@@ -82,14 +87,41 @@ class AntlrViewApp : Application() {
             vboxOf(
                 growing = grammar,
                 hbGrammar,
-                grammar
+                grammar,
+                grammarPosition
             ), vboxOf(
                 growing = text,
                 hbText,
-                text
+                text,
+                textPosition
             )
         )
         return editorSplit
+    }
+
+    private fun createCaretPositionIndicator(editor: TextArea): Label {
+        val textPosition = Label()
+        textPosition.padding = Insets(2.0 , 2.0 ,2.0, 2.0)
+        val updateTextCaretPosition = updateCaretPosition(editor, textPosition)
+        editor.addEventHandler(MouseEvent.MOUSE_CLICKED, updateTextCaretPosition)
+        editor.addEventHandler(KeyEvent.KEY_RELEASED, updateTextCaretPosition)
+        editor.textProperty().addListener { _, _, _ -> updateTextCaretPosition.handle(null) }
+        return textPosition
+    }
+
+    private fun updateCaretPosition(editor: TextArea, label: Label): EventHandler<Event> {
+        return EventHandler<Event> {
+            val caret = editor.caretPosition
+            val (line, pos) = caretToLinePos(caret, editor.text)
+            label.text = "${line}:${pos}"
+        }
+    }
+
+    private fun caretToLinePos(caret: Int, text: String): Pair<Int, Int> {
+        val subtext = text.substring(0, caret)
+        val line = subtext.chars().filter { it == '\n'.toInt() }.count().toInt() + 1
+        val pos = caret - subtext.indexOfLast { it == '\n' }
+        return Pair(line, pos)
     }
 
     private fun configureErrorsView() {
@@ -151,9 +183,11 @@ class AntlrViewApp : Application() {
                 buildTree(antlrResult.tree!!, antlrResult.grammar.ruleNames.asList())
             }
         } catch (ex: Exception) {
-            populateErrorList(listOf(
-                ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
-            ))
+            populateErrorList(
+                listOf(
+                    ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
+                )
+            )
             ex.printStackTrace()
         }
     }

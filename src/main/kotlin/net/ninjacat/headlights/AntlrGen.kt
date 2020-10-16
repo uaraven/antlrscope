@@ -91,7 +91,7 @@ class ParseListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolLi
     override fun error(msg: ANTLRMessage?) {
         errors.add(
             ErrorMessage(
-                msg?.line!!, msg.charPosition,
+                msg?.line!!, msg.charPosition + 1,
                 formatErrorArgs(msg.errorType.msg, msg.args), ErrorSource.GRAMMAR))
     }
 
