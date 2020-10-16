@@ -36,6 +36,39 @@ class AntlrViewApp : Application() {
         primaryStage?.width = 1200.0
         primaryStage?.height = 800.0
 
+        outputPane.tabs?.add(resultsTab)
+        outputPane.tabs?.add(Tab("Errors", errors))
+        outputPane.tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
+
+        resultPane.children?.add(outputPane)
+        VBox.setVgrow(outputPane, Priority.ALWAYS)
+
+        configureErrorsView()
+
+        val editorSplit = configureEditors()
+
+
+
+        val mainContainer = SplitPane()
+        mainContainer.orientation = Orientation.VERTICAL
+        mainContainer.items.addAll(
+            vboxOf(growing = editorSplit, editorSplit, createBottomBar()),
+            resultPane
+        )
+        mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
+
+        primaryStage?.scene = Scene(mainContainer)
+        primaryStage?.show()
+    }
+
+    private fun configureEditors(): SplitPane {
+        if (parameters.named.containsKey("grammar")) {
+            grammar.text = loadFile(parameters.named["grammar"])
+        }
+        if (parameters.named.containsKey("text")) {
+            text.text = loadFile(parameters.named["text"])
+        }
+
         val editorSplit = SplitPane()
 
         val lGrammar = Label("Grammar")
@@ -56,21 +89,10 @@ class AntlrViewApp : Application() {
                 text
             )
         )
+        return editorSplit
+    }
 
-        outputPane.tabs?.add(resultsTab)
-        outputPane.tabs?.add(Tab("Errors", errors))
-
-        resultPane.children?.add(outputPane)
-        VBox.setVgrow(outputPane, Priority.ALWAYS)
-
-
-        if (parameters.named.containsKey("grammar")) {
-            grammar.text = loadFile(parameters.named["grammar"])
-        }
-        if (parameters.named.containsKey("text")) {
-            text.text = loadFile(parameters.named["text"])
-        }
-
+    private fun configureErrorsView() {
         val columnPosition = TableColumn<ErrorMessage, String>("Position")
         columnPosition.cellValueFactory = PropertyValueFactory("position")
         val columnMessage = TableColumn<ErrorMessage, String>("Message")
@@ -79,18 +101,7 @@ class AntlrViewApp : Application() {
         }
         columnMessage.cellValueFactory = PropertyValueFactory("message")
         errors.columns.addAll(columnPosition, columnMessage)
-
-
-        val mainContainer = SplitPane()
-        mainContainer.orientation = Orientation.VERTICAL
-        mainContainer.items.addAll(
-            vboxOf(growing = editorSplit, editorSplit, createBottomBar()),
-            resultPane
-        )
-        mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
-
-        primaryStage?.scene = Scene(mainContainer)
-        primaryStage?.show()
+        errors.placeholder = Label("")
     }
 
     private fun vboxOf(growing: Node?, vararg children: Node): Node {
@@ -140,17 +151,38 @@ class AntlrViewApp : Application() {
                 buildTree(antlrResult.tree!!, antlrResult.grammar.ruleNames.asList())
             }
         } catch (ex: Exception) {
-            val errors = TextArea()
-            errors.isEditable = false
-            errors.text = ex.message
-            setResult(errors)
+            populateErrorList(listOf(
+                ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
+            ))
             ex.printStackTrace()
         }
     }
 
     private fun populateErrorList(errorList: List<ErrorMessage>) {
         errors.items.clear()
-        errors.items.setAll(errorList)
+        if (errorList.isNotEmpty()) {
+            errors.items.setAll(errorList)
+            outputPane.selectionModel.select(1)
+            if (errorList[0].errorSource != ErrorSource.UNKNOWN) {
+                val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) grammar else text
+                editor.positionCaret(calculatePosition(errorList[0], editor))
+                editor.requestFocus()
+            }
+        } else {
+            outputPane.selectionModel.select(0)
+        }
+    }
+
+    /**
+     * Calculate position in string based on line number and position in line of the
+     */
+    private fun calculatePosition(errorMsg: ErrorMessage, grammar: TextArea): Int {
+        var pos = 0
+        val lines = grammar.text.split("\n")
+        for (i in 0 until errorMsg.line - 1) {
+            pos += lines[i].length + 1
+        }
+        return pos + errorMsg.pos
     }
 
     private fun setResult(content: Node) {
@@ -188,14 +220,13 @@ class AntlrViewApp : Application() {
         child: ParseTree?,
         ruleNames: List<String>
     ): TreeItem<String> {
-        val uiChild = if (child is ErrorNode) {
+        return if (child is ErrorNode) {
             TreeItem("Error: ${child.text}")
         } else if (child is TerminalNode) {
             TreeItem("Token: ${child.text}")
         } else {
             TreeItem("<${ruleNames[(child as InterpreterRuleContext).ruleIndex]}>")
         }
-        return uiChild
     }
 
 }
