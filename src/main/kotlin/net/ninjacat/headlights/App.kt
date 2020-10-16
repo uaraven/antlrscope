@@ -36,6 +36,27 @@ class AntlrViewApp : Application() {
         primaryStage?.width = 1200.0
         primaryStage?.height = 800.0
 
+        val editorSplit = SplitPane()
+
+        val lGrammar = Label("Grammar")
+        val hbGrammar = HBox(lGrammar)
+        hbGrammar.style = "-fx-background-color: #00B0D0;"
+        val lText = Label("Text")
+        val hbText = HBox(lText)
+        hbText.style = "-fx-background-color: #00B0D0;"
+
+        editorSplit.items.addAll(
+            vboxOf(
+                growing = grammar,
+                hbGrammar,
+                grammar
+            ), vboxOf(
+                growing = text,
+                hbText,
+                text
+            )
+        )
+
         outputPane.tabs?.add(resultsTab)
         outputPane.tabs?.add(Tab("Errors", errors))
 
@@ -47,47 +68,25 @@ class AntlrViewApp : Application() {
             grammar.text = loadFile(parameters.named["grammar"])
         }
         if (parameters.named.containsKey("text")) {
-            text?.text = loadFile(parameters.named["text"])
+            text.text = loadFile(parameters.named["text"])
         }
 
         val columnPosition = TableColumn<ErrorMessage, String>("Position")
         columnPosition.cellValueFactory = PropertyValueFactory("position")
         val columnMessage = TableColumn<ErrorMessage, String>("Message")
-        errors.widthProperty().addListener { observable, old, newv ->
+        errors.widthProperty().addListener { _, _, newv ->
             columnMessage.minWidth = newv.toDouble() - columnPosition.width - 5
         }
         columnMessage.cellValueFactory = PropertyValueFactory("message")
         errors.columns.addAll(columnPosition, columnMessage)
 
-        val lGrammar = Label("Grammar")
-        val hbGrammar = HBox(lGrammar)
-        hbGrammar.style = "-fx-background-color: #00B0D0;"
-
-
-        val lText = Label("Text")
-        val hbText = HBox(lText)
-        hbText.style = "-fx-background-color: #00B0D0;"
-
 
         val mainContainer = SplitPane()
         mainContainer.orientation = Orientation.VERTICAL
-        mainContainer.items.add(
-            vboxOf(
-                growing = grammar,
-                hbGrammar,
-                grammar
-            )
+        mainContainer.items.addAll(
+            vboxOf(growing = editorSplit, editorSplit, createBottomBar()),
+            resultPane
         )
-        mainContainer.items.add(
-            vboxOf(
-                growing = text,
-                hbText,
-                text,
-                createBottomBar()
-            )
-        )
-        mainContainer.items.add(vboxOf(growing = resultPane, resultPane))
-        mainContainer.setDividerPositions(0.3, 0.6);
         mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
 
         primaryStage?.scene = Scene(mainContainer)
