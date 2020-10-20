@@ -20,6 +20,8 @@ import org.antlr.v4.runtime.InterpreterRuleContext
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
+import org.fxmisc.richtext.CodeArea
+import org.fxmisc.richtext.LineNumberFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
@@ -27,7 +29,7 @@ import java.util.stream.Collectors
 
 class AntlrViewApp : Application() {
     private val hack = Font.loadFont(javaClass.getResource("/Hack-Regular.ttf").toExternalForm(), 15.0)
-    private val grammar: TextArea = createGrammarEditor()
+    private val grammar: CodeArea = createRichEditor()
     private val text: TextArea = createGrammarEditor()
     private val resultPane: VBox = VBox()
     private val outputPane: TabPane = TabPane()
@@ -59,16 +61,21 @@ class AntlrViewApp : Application() {
         )
         mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
 
-        primaryStage?.scene = Scene(mainContainer)
+        val scene = Scene(mainContainer)
+        scene.stylesheets.add(javaClass.getResource("/style.css").toExternalForm())
+        scene.stylesheets.add(javaClass.getResource("/g4-highlight.css").toExternalForm())
+        primaryStage?.scene = scene
         primaryStage?.show()
     }
 
     private fun configureEditors(): SplitPane {
-        val grammarPosition = createCaretPositionIndicator(grammar)
+        setupSyntaxHighlighting(grammar);
+
+        val grammarPosition = createRichCaretPositionIndicator(grammar)
         val textPosition = createCaretPositionIndicator(text)
 
         if (parameters.named.containsKey("grammar")) {
-            grammar.text = loadFile(parameters.named["grammar"])
+            grammar.replaceText(loadFile(parameters.named["grammar"]))
         }
         if (parameters.named.containsKey("text")) {
             text.text = loadFile(parameters.named["text"])
@@ -99,9 +106,25 @@ class AntlrViewApp : Application() {
         return editorSplit
     }
 
+    private fun setupSyntaxHighlighting(editor: CodeArea) {
+        editor.visibleParagraphs.addModificationObserver(
+            ParagraphStyler(editor) { text -> G4Highligher.computeHighlighting(text) }
+        )
+    }
+
+    private fun createRichCaretPositionIndicator(editor: CodeArea): Label {
+        val textPosition = Label()
+        textPosition.padding = Insets(2.0, 2.0, 2.0, 2.0)
+        val updateTextCaretPosition = updateRichCaretPosition(editor, textPosition)
+        editor.addEventHandler(MouseEvent.MOUSE_CLICKED, updateTextCaretPosition)
+        editor.addEventHandler(KeyEvent.KEY_RELEASED, updateTextCaretPosition)
+        editor.textProperty().addListener { _, _, _ -> updateTextCaretPosition.handle(null) }
+        return textPosition
+    }
+
     private fun createCaretPositionIndicator(editor: TextArea): Label {
         val textPosition = Label()
-        textPosition.padding = Insets(2.0 , 2.0 ,2.0, 2.0)
+        textPosition.padding = Insets(2.0, 2.0, 2.0, 2.0)
         val updateTextCaretPosition = updateCaretPosition(editor, textPosition)
         editor.addEventHandler(MouseEvent.MOUSE_CLICKED, updateTextCaretPosition)
         editor.addEventHandler(KeyEvent.KEY_RELEASED, updateTextCaretPosition)
@@ -113,6 +136,14 @@ class AntlrViewApp : Application() {
         return EventHandler<Event> {
             val caret = editor.caretPosition
             val (line, pos) = caretToLinePos(caret, editor.text)
+            label.text = "${line}:${pos}"
+        }
+    }
+
+    private fun updateRichCaretPosition(editor: CodeArea, label: Label): EventHandler<Event> {
+        return EventHandler<Event> {
+            val line = editor.currentParagraph + 1
+            val pos = editor.caretColumn + 1
             label.text = "${line}:${pos}"
         }
     }
@@ -165,6 +196,12 @@ class AntlrViewApp : Application() {
         return bottom
     }
 
+    private fun createRichEditor(): CodeArea {
+        val result = CodeArea();
+        result.paragraphGraphicFactory = LineNumberFactory.get(result)
+        return result;
+    }
+
     private fun createGrammarEditor(): TextArea {
         val result = TextArea()
         result.font = hack
@@ -198,9 +235,14 @@ class AntlrViewApp : Application() {
             errors.items.setAll(errorList)
             outputPane.selectionModel.select(1)
             if (errorList[0].errorSource != ErrorSource.UNKNOWN) {
-                val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) grammar else text
-                editor.positionCaret(calculatePosition(errorList[0], editor))
-                editor.requestFocus()
+                if (errorList[0].errorSource == ErrorSource.GRAMMAR) {
+                    grammar.moveTo(errorList[0].line, errorList[0].pos)
+                    grammar.requestFocus()
+                }
+                else {
+                    text.positionCaret(calculatePosition(errorList[0], text))
+                    text.requestFocus()
+                }
             }
         } else {
             outputPane.selectionModel.select(0)
