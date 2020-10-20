@@ -1,0 +1,15 @@
+@font-face {
+  src: url('/Hack-Regular.ttf');
+}
+
+.paragraph-text {
+  -fx-font-family: 'Hack', monospace;
+}
+
+.code-area {
+  -fx-font-size: 15;
+}
+
+.lineno {
+  -fx-font-size: 15;
+}
