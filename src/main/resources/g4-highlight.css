@@ -1,0 +1,42 @@
+.keyword {
+  -fx-fill: darkblue;
+  -fx-font-weight: bold;
+}
+
+.separator {
+  -fx-fill: darkcyan;
+  -fx-font-weight: bold;
+}
+
+.regex {
+  -fx-fill: firebrick;
+}
+
+.paren {
+  -fx-fill: darkgreen;
+}
+
+.brace {
+  -fx-fill: teal;
+}
+
+.string {
+  -fx-fill: coral;
+}
+
+.comment {
+  -fx-fill: slategrey;
+}
+
+.token {
+  -fx-fill: steelblue;
+}
+
+.parser-rule {
+  -fx-fill: steelblue;
+  -fx-font-weight: bold;
+}
+
+.paragraph-box:has-caret {
+  -fx-background-color: lemonchiffon;
+}
