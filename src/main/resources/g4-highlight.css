@@ -1,31 +1,42 @@
 .keyword {
-    -fx-fill: darkblue;
-    -fx-font-weight: bold;
+  -fx-fill: darkblue;
+  -fx-font-weight: bold;
 }
+
 .separator {
-    -fx-fill: darkcyan;
-    -fx-font-weight: bold;
+  -fx-fill: darkcyan;
+  -fx-font-weight: bold;
 }
+
 .regex {
-    -fx-fill: firebrick;
+  -fx-fill: firebrick;
 }
+
 .paren {
-    -fx-fill: darkgreen;
+  -fx-fill: darkgreen;
 }
-.bracket {
-    -fx-fill: darkgreen;
-}
+
 .brace {
-    -fx-fill: teal;
+  -fx-fill: teal;
 }
+
 .string {
-    -fx-fill: coral;
+  -fx-fill: coral;
 }
 
 .comment {
-    -fx-fill: cadetblue;
+  -fx-fill: slategrey;
+}
+
+.token {
+  -fx-fill: steelblue;
+}
+
+.parser-rule {
+  -fx-fill: steelblue;
+  -fx-font-weight: bold;
 }
 
 .paragraph-box:has-caret {
-    -fx-background-color: lavender;
+  -fx-background-color: lavender;
 }

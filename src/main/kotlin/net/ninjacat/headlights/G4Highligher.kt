@@ -7,8 +7,8 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 object G4Highligher {
-    
-        private val KEYWORDS = listOf(
+
+    private val KEYWORDS = listOf(
             "parser",
             "lexer",
             "grammar",
@@ -16,31 +16,35 @@ object G4Highligher {
             "import",
             "tokens",
             "channels",
-            "fragment"
-        )
+            "fragment",
+            "mode",
+            "skip"
+    )
 
-        private val KEYWORD_PATTERN = "\\b(" + KEYWORDS.joinToString("|") + ")\\b"
-        private const val STRING_PATTERN = "\'([^'\\\\]|\\\\.)*'"
-        private const val PAREN_PATTERN = "\\(|\\)"
-        private const val BRACE_PATTERN = "\\{|\\}"
-        private const val BRACKET_PATTERN = "\\[|\\]"
-        private const val SEPARATOR_PATTERN = ";|:"
-        private const val REGEX_PATTERN = "\\.|\\*|\\?|\\+"
-        private const val COMMENT_PATTERN =
+    private val KEYWORD_PATTERN = "\\b(" + KEYWORDS.joinToString("|") + ")\\b"
+    private const val STRING_PATTERN = "\'([^'\\\\]|\\\\.)*'"
+    private const val PAREN_PATTERN = "\\(|\\)"
+    private const val BRACE_PATTERN = "\\{|\\}"
+    private const val SEPARATOR_PATTERN = ";|:"
+    private const val REGEX_PATTERN = "\\.|\\*|\\?|\\+|\\[|\\]"
+    private const val TOKEN_PATTERN = "\\b[A-Z][\\w_]*\\b"
+    private const val PARSER_RULE_PATTERN = "\\b[a-z][\\w_]*\\b"
+    private const val COMMENT_PATTERN =
             ("//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/" // for whole text processing (text blocks)
                     + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)") // for visible paragraph processing (line by line)
 
 
-        private val PATTERN: Pattern = Pattern.compile(
+    private val PATTERN: Pattern = Pattern.compile(
             "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
                     + "|(?<PAREN>" + PAREN_PATTERN + ")"
                     + "|(?<BRACE>" + BRACE_PATTERN + ")"
                     + "|(?<REGEX>" + REGEX_PATTERN + ")"
-                    + "|(?<BRACKET>" + BRACKET_PATTERN + ")"
                     + "|(?<SEPARATOR>" + SEPARATOR_PATTERN + ")"
                     + "|(?<STRING>" + STRING_PATTERN + ")"
                     + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
-        )
+                    + "|(?<TOKEN>" + TOKEN_PATTERN + ")"
+                    + "|(?<PARSERRULE>" + PARSER_RULE_PATTERN + ")"
+    )
 
     fun computeHighlighting(text: String): StyleSpans<Collection<String>> {
         val matcher: Matcher = PATTERN.matcher(text)
@@ -52,10 +56,11 @@ object G4Highligher {
                 (matcher.group("PAREN") != null) -> "paren"
                 (matcher.group("REGEX") != null) -> "regex"
                 (matcher.group("BRACE") != null) -> "brace"
-                (matcher.group("BRACKET") != null) -> "bracket"
                 (matcher.group("SEPARATOR") != null) -> "separator"
                 (matcher.group("STRING") != null) -> "string"
                 (matcher.group("COMMENT") != null) -> "comment"
+                (matcher.group("TOKEN") != null) -> "token"
+                (matcher.group("PARSERRULE") != null) -> "parser-rule"
                 else -> ""
             }
             spansBuilder.add(listOf(), matcher.start() - lastKwEnd)
