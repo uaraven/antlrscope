@@ -13,6 +13,10 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Stage
+import net.ninjacat.headlights.antlr.AntlrInterpreter
+import net.ninjacat.headlights.antlr.ErrorMessage
+import net.ninjacat.headlights.antlr.ErrorSource
+import net.ninjacat.headlights.antlr.LexerToken
 import net.ninjacat.headlights.ui.GrammarTextEditorPane
 import org.antlr.v4.runtime.InterpreterRuleContext
 import org.antlr.v4.runtime.tree.ErrorNode
@@ -158,14 +162,16 @@ class AntlrViewApp : Application() {
 
     private fun onParseClicked() {
         try {
-            val antlrResult = AntlrGen.generateTree(editors.grammar.text ?: "", editors.text.text ?: "")
+            val parser = AntlrInterpreter(editors.grammar.text ?: "", editors.text.text ?: "")
 
-            populateErrorList(antlrResult.errors)
+            parser.parse()
 
-            if (antlrResult.isLexer()) {
-                buildTokens(antlrResult.tokens!!)
+            populateErrorList(parser.errors())
+
+            if (parser.hasTokens()) {
+                buildTokens(parser.tokens())
             } else {
-                buildTree(antlrResult.tree!!, antlrResult.grammar.ruleNames.asList())
+                buildTree(parser.parseTree()!!, parser.antlrGrammar()!!.ruleNames.asList())
             }
         } catch (ex: Exception) {
             populateErrorList(
@@ -227,12 +233,16 @@ class AntlrViewApp : Application() {
         child: ParseTree?,
         ruleNames: List<String>
     ): TreeItem<String> {
-        return if (child is ErrorNode) {
-            TreeItem("Error: ${child.text}")
-        } else if (child is TerminalNode) {
-            TreeItem("Token: ${child.text}")
-        } else {
-            TreeItem("<${ruleNames[(child as InterpreterRuleContext).ruleIndex]}>")
+        return when (child) {
+            is ErrorNode -> {
+                TreeItem("Error: ${child.text}")
+            }
+            is TerminalNode -> {
+                TreeItem("Token: ${child.text}")
+            }
+            else -> {
+                TreeItem("<${ruleNames[(child as InterpreterRuleContext).ruleIndex]}>")
+            }
         }
     }
 
