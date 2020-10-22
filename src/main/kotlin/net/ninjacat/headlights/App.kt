@@ -1,7 +1,6 @@
 package net.ninjacat.headlights
 
 import javafx.application.Application
-import javafx.event.Event
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
@@ -9,37 +8,34 @@ import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import javafx.scene.text.Font
+import javafx.stage.FileChooser
 import javafx.stage.Stage
+import net.ninjacat.headlights.ui.GrammarTextEditorPane
 import org.antlr.v4.runtime.InterpreterRuleContext
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
-import org.fxmisc.richtext.CodeArea
-import org.fxmisc.richtext.LineNumberFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
+import kotlin.system.exitProcess
 
 
 class AntlrViewApp : Application() {
-    private val hack = Font.loadFont(javaClass.getResource("/Hack-Regular.ttf").toExternalForm(), 15.0)
-    private val grammar: CodeArea = createRichEditor()
-    private val text: CodeArea = createRichEditor()
+    private val editors = GrammarTextEditorPane()
     private val resultPane: VBox = VBox()
     private val outputPane: TabPane = TabPane()
     private val resultsTab: Tab = Tab("Results", Label())
     private val errors: TableView<ErrorMessage> = TableView()
+    private val mainMenu = MenuBar()
 
-    override fun start(primaryStage: Stage?) {
-        primaryStage?.title = "ANTLR in the Headlights"
-        primaryStage?.width = 1200.0
-        primaryStage?.height = 800.0
+    override fun start(primaryStage: Stage) {
+        primaryStage.title = "ANTLR in the Headlights"
+        primaryStage.width = 1200.0
+        primaryStage.height = 800.0
 
         outputPane.tabs?.add(resultsTab)
         outputPane.tabs?.add(Tab("Errors", errors))
@@ -50,109 +46,73 @@ class AntlrViewApp : Application() {
 
         configureErrorsView()
 
-        val editorSplit = configureEditors()
+        if (parameters.named.containsKey("grammar")) {
+            editors.setGrammar(loadFile(parameters.named["grammar"]))
+        }
+        if (parameters.named.containsKey("text")) {
+            editors.setText(loadFile(parameters.named["text"]))
+        }
 
-
-        val mainContainer = SplitPane()
-        mainContainer.orientation = Orientation.VERTICAL
-        mainContainer.items.addAll(
-                vboxOf(growing = editorSplit, editorSplit, createBottomBar()),
-                resultPane
+        val content = SplitPane()
+        content.orientation = Orientation.VERTICAL
+        content.items.addAll(
+            vboxOf(growing = editors, editors, createBottomBar()),
+            resultPane
         )
-        mainContainer.style = "-fx-font-smoothing-type: lcd; -fx-font-size: 15"
+
+        createMainMenu(mainMenu, primaryStage)
+
+        val mainContainer = VBox()
+        mainContainer.id = "main"
+        mainContainer.children.addAll(mainMenu, content)
+        VBox.setVgrow(content, Priority.ALWAYS)
 
         val scene = Scene(mainContainer)
         scene.stylesheets.add(javaClass.getResource("/style.css").toExternalForm())
         scene.stylesheets.add(javaClass.getResource("/g4-highlight.css").toExternalForm())
-        primaryStage?.scene = scene
-        primaryStage?.show()
+        primaryStage.scene = scene
+        primaryStage.show()
     }
 
-    private fun configureEditors(): SplitPane {
-        setupSyntaxHighlighting(grammar)
+    private fun createMainMenu(menu: MenuBar, stage: Stage) {
+        val fileMenu = Menu("_File")
+        val loadGrammarMenuItem = MenuItem("Load _Grammar")
+        val loadTextMenuItem = MenuItem("Load _Text")
+        val exitMenuItem = MenuItem("E_xit")
 
-        val grammarPosition = createRichCaretPositionIndicator(grammar)
-        val textPosition = createRichCaretPositionIndicator(text)
-
-        if (parameters.named.containsKey("grammar")) {
-            grammar.replaceText(loadFile(parameters.named["grammar"]))
+        loadGrammarMenuItem.onAction = EventHandler {
+            val fileChooser = FileChooser()
+            fileChooser.title = "Select grammar file"
+            fileChooser.extensionFilters.addAll(
+                FileChooser.ExtensionFilter("Antlr4 Grammar files", "*.g4"),
+                FileChooser.ExtensionFilter("All files", "*.*"),
+            )
+            val grammarFile = fileChooser.showOpenDialog(stage)
+            if (grammarFile != null) {
+                editors.setGrammar(loadFile(grammarFile.absolutePath))
+            }
         }
-        if (parameters.named.containsKey("text")) {
-            text.replaceText(loadFile(parameters.named["text"]))
+
+
+        loadTextMenuItem.onAction = EventHandler {
+            val fileChooser = FileChooser()
+            fileChooser.title = "Select text file"
+            val file = fileChooser.showOpenDialog(stage)
+            if (file != null) {
+                editors.setText(loadFile(file.absolutePath))
+            }
         }
 
-        val editorSplit = SplitPane()
+        exitMenuItem.onAction = EventHandler { exitProcess(0); }
 
-        val lGrammar = Label("Grammar")
-        val hbGrammar = HBox(lGrammar)
-        hbGrammar.style = "-fx-background-color: #00B0D0;"
-        val lText = Label("Text")
-        val hbText = HBox(lText)
-        hbText.style = "-fx-background-color: #00B0D0;"
-
-        editorSplit.items.addAll(
-                vboxOf(
-                        growing = grammar,
-                        hbGrammar,
-                        grammar,
-                        grammarPosition
-                ), vboxOf(
-                growing = text,
-                hbText,
-                text,
-                textPosition
+        fileMenu.items.addAll(
+            loadGrammarMenuItem,
+            loadTextMenuItem,
+            SeparatorMenuItem(),
+            exitMenuItem
         )
-        )
-        return editorSplit
-    }
 
-    private fun setupSyntaxHighlighting(editor: CodeArea) {
-        editor.visibleParagraphs.addModificationObserver(
-                ParagraphStyler(editor) { text -> G4Highligher.computeHighlighting(text) }
-        )
-    }
-
-    private fun createRichCaretPositionIndicator(editor: CodeArea): Label {
-        val textPosition = Label()
-        textPosition.padding = Insets(2.0, 2.0, 2.0, 2.0)
-        val updateTextCaretPosition = updateRichCaretPosition(editor, textPosition)
-        editor.addEventHandler(MouseEvent.MOUSE_CLICKED, updateTextCaretPosition)
-        editor.addEventHandler(KeyEvent.KEY_RELEASED, updateTextCaretPosition)
-        editor.textProperty().addListener { _, _, _ -> updateTextCaretPosition.handle(null) }
-        return textPosition
-    }
-
-    private fun createCaretPositionIndicator(editor: TextArea): Label {
-        val textPosition = Label()
-        textPosition.padding = Insets(2.0, 2.0, 2.0, 2.0)
-        val updateTextCaretPosition = updateCaretPosition(editor, textPosition)
-        editor.addEventHandler(MouseEvent.MOUSE_CLICKED, updateTextCaretPosition)
-        editor.addEventHandler(KeyEvent.KEY_RELEASED, updateTextCaretPosition)
-        editor.textProperty().addListener { _, _, _ -> updateTextCaretPosition.handle(null) }
-        return textPosition
-    }
-
-    private fun updateCaretPosition(editor: TextArea, label: Label): EventHandler<Event> {
-        return EventHandler<Event> {
-            val caret = editor.caretPosition
-            val (line, pos) = caretToLinePos(caret, editor.text)
-            label.text = "${line}:${pos}"
-        }
-    }
-
-    private fun updateRichCaretPosition(editor: CodeArea, label: Label): EventHandler<Event> {
-        return EventHandler<Event> {
-            val line = editor.currentParagraph + 1
-            val pos = editor.caretColumn + 1
-            label.text = "${line}:${pos}"
-        }
-    }
-
-    private fun caretToLinePos(caret: Int, text: String): Pair<Int, Int> {
-        val subtext = text.substring(0, caret)
-        val line = subtext.chars().filter { it == '\n'.toInt() }.count().toInt() + 1
-        val pos = caret - subtext.indexOfLast { it == '\n' }
-        return Pair(line, pos)
+        menu.menus.addAll(fileMenu)
     }
 
     private fun configureErrorsView() {
@@ -196,15 +156,9 @@ class AntlrViewApp : Application() {
         return bottom
     }
 
-    private fun createRichEditor(): CodeArea {
-        val result = CodeArea()
-        result.paragraphGraphicFactory = LineNumberFactory.get(result)
-        return result
-    }
-
     private fun onParseClicked() {
         try {
-            val antlrResult = AntlrGen.generateTree(grammar.text ?: "", text.text ?: "")
+            val antlrResult = AntlrGen.generateTree(editors.grammar.text ?: "", editors.text.text ?: "")
 
             populateErrorList(antlrResult.errors)
 
@@ -215,9 +169,9 @@ class AntlrViewApp : Application() {
             }
         } catch (ex: Exception) {
             populateErrorList(
-                    listOf(
-                            ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
-                    )
+                listOf(
+                    ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
+                )
             )
             ex.printStackTrace()
         }
@@ -229,8 +183,8 @@ class AntlrViewApp : Application() {
             errors.items.setAll(errorList)
             outputPane.selectionModel.select(1)
             if (errorList[0].errorSource != ErrorSource.UNKNOWN) {
-                val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) grammar else text
-                editor.moveTo(errorList[0].line-1, errorList[0].pos-1)
+                val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
+                editor.moveTo(errorList[0].line - 1, errorList[0].pos - 1)
                 editor.requestFocus()
             }
         } else {
@@ -270,8 +224,8 @@ class AntlrViewApp : Application() {
     }
 
     private fun treeItemFromParseNode(
-            child: ParseTree?,
-            ruleNames: List<String>
+        child: ParseTree?,
+        ruleNames: List<String>
     ): TreeItem<String> {
         return if (child is ErrorNode) {
             TreeItem("Error: ${child.text}")

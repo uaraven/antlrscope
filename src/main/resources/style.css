@@ -2,12 +2,42 @@
   src: url('/Hack-Regular.ttf');
 }
 
+/* Colors in the following styles need to be updated for theming */
+#main {
+  -fx-base: #222;
+  -fx-font-smoothing-type: lcd;
+  -fx-font-size: 15;
+  -fx-text-inner-color: lightgray;
+}
+
+.caret {
+  -fx-stroke: derive(-fx-text-inner-color, -20%);
+  -fx-fill: -fx-stroke;
+  -fx-stroke-width: 3;
+}
+
+/* end of theme-base colors */
+
 .paragraph-text {
   -fx-font-family: 'Hack', monospace;
 }
 
 .code-area {
   -fx-font-size: 15;
+  -fx-cursor: text;
+  -fx-background-color: derive(-fx-base, 30%);
+  -fx-background-insets: 0, 1;
+  -fx-background-radius: 3, 2;
+  -fx-padding: 4 7 4 7;
+}
+
+.code-area .text {
+  -fx-fill: -fx-text-inner-color;
+}
+
+
+.paragraph-box:has-caret {
+  -fx-background-color: derive(-fx-base, 60%);
 }
 
 .main-selection {
@@ -16,4 +46,6 @@
 
 .lineno {
   -fx-font-size: 15;
+  -fx-text-fill: honeydew;
+  -fx-background-color: darkslategray;
 }

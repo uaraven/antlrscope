@@ -1,42 +1,38 @@
-.keyword {
-  -fx-fill: darkblue;
+.code-area .keyword {
+  -fx-fill: darkseagreen;
   -fx-font-weight: bold;
 }
 
-.separator {
+.code-area .separator {
   -fx-fill: darkcyan;
   -fx-font-weight: bold;
 }
 
-.regex {
-  -fx-fill: firebrick;
+.code-area .regex {
+  -fx-fill: lightpink;
 }
 
-.paren {
-  -fx-fill: darkgreen;
+.code-area .paren {
+  -fx-fill: mediumseagreen;
 }
 
-.brace {
+.code-area .brace {
   -fx-fill: teal;
 }
 
-.string {
+.code-area .string {
   -fx-fill: coral;
 }
 
-.comment {
+.code-area .comment {
   -fx-fill: slategrey;
 }
 
-.token {
+.code-area .token {
   -fx-fill: steelblue;
 }
 
-.parser-rule {
-  -fx-fill: steelblue;
+.code-area .parser-rule {
+  -fx-fill: powderblue;
   -fx-font-weight: bold;
-}
-
-.paragraph-box:has-caret {
-  -fx-background-color: lemonchiffon;
 }

@@ -6,19 +6,19 @@ import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-object G4Highligher {
+object G4Highlighter {
 
     private val KEYWORDS = listOf(
-            "parser",
-            "lexer",
-            "grammar",
-            "options",
-            "import",
-            "tokens",
-            "channels",
-            "fragment",
-            "mode",
-            "skip"
+        "parser",
+        "lexer",
+        "grammar",
+        "options",
+        "import",
+        "tokens",
+        "channels",
+        "fragment",
+        "mode",
+        "skip"
     )
 
     private val KEYWORD_PATTERN = "\\b(" + KEYWORDS.joinToString("|") + ")\\b"
@@ -30,20 +30,21 @@ object G4Highligher {
     private const val TOKEN_PATTERN = "\\b[A-Z][\\w_]*\\b"
     private const val PARSER_RULE_PATTERN = "\\b[a-z][\\w_]*\\b"
     private const val COMMENT_PATTERN =
-            ("//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/" // for whole text processing (text blocks)
-                    + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)") // for visible paragraph processing (line by line)
+        ("#[^\n]*" + "|" + "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/" // for whole text processing (text blocks)
+                + "|" + "/\\*[^\\v]*" + "|" + "^\\h*\\*([^\\v]*|/)"
+                ) // for visible paragraph processing (line by line)
 
 
     private val PATTERN: Pattern = Pattern.compile(
-            "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
-                    + "|(?<PAREN>" + PAREN_PATTERN + ")"
-                    + "|(?<BRACE>" + BRACE_PATTERN + ")"
-                    + "|(?<REGEX>" + REGEX_PATTERN + ")"
-                    + "|(?<SEPARATOR>" + SEPARATOR_PATTERN + ")"
-                    + "|(?<STRING>" + STRING_PATTERN + ")"
-                    + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
-                    + "|(?<TOKEN>" + TOKEN_PATTERN + ")"
-                    + "|(?<PARSERRULE>" + PARSER_RULE_PATTERN + ")"
+        "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
+                + "|(?<PAREN>" + PAREN_PATTERN + ")"
+                + "|(?<BRACE>" + BRACE_PATTERN + ")"
+                + "|(?<REGEX>" + REGEX_PATTERN + ")"
+                + "|(?<SEPARATOR>" + SEPARATOR_PATTERN + ")"
+                + "|(?<STRING>" + STRING_PATTERN + ")"
+                + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
+                + "|(?<TOKEN>" + TOKEN_PATTERN + ")"
+                + "|(?<PARSERRULE>" + PARSER_RULE_PATTERN + ")"
     )
 
     fun computeHighlighting(text: String): StyleSpans<Collection<String>> {
