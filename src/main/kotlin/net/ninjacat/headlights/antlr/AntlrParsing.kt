@@ -2,17 +2,6 @@ package net.ninjacat.headlights.antlr
 
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.Token
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.tool.Grammar
-
-data class AntlrResult(
-        val tree: ParseTree?,
-        val tokens: List<LexerToken>?,
-        val grammar: Grammar,
-        val errors: List<ErrorMessage>
-) {
-    fun isLexer() = tokens != null
-}
 
 enum class ErrorSource {
     GRAMMAR,

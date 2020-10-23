@@ -9,7 +9,6 @@ import org.antlr.v4.tool.ast.GrammarRootAST
 
 class AntlrInterpreter(grammar: String, text: String): AntlrGrammarParser(grammar, text) {
 
-
     override fun parse(): Boolean {
         antlrGrammar = parseGrammar(grammar)
         try {

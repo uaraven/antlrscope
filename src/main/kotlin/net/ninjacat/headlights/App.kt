@@ -11,15 +11,13 @@ import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
+import javafx.scene.input.MouseButton
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Stage
-import net.ninjacat.headlights.antlr.AntlrCompiler
-import net.ninjacat.headlights.antlr.ErrorMessage
-import net.ninjacat.headlights.antlr.ErrorSource
-import net.ninjacat.headlights.antlr.LexerToken
+import net.ninjacat.headlights.antlr.*
 import net.ninjacat.headlights.ui.GrammarTextEditorPane
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ErrorNode
@@ -176,6 +174,7 @@ class AntlrViewApp : Application() {
         columnValue.cellValueFactory = PropertyValueFactory("text")
         tokenView.columns.addAll(columnType, columnValue)
         tokenView.placeholder = Label("")
+
     }
 
     private fun configureErrorsView() {
@@ -188,6 +187,16 @@ class AntlrViewApp : Application() {
         columnMessage.cellValueFactory = PropertyValueFactory("message")
         errors.columns.addAll(columnPosition, columnMessage)
         errors.placeholder = Label("")
+
+        errors.setRowFactory { tv ->
+            val row = TableRow<ErrorMessage>()
+            row.onMouseClicked = EventHandler { event ->
+                if (!row.isEmpty && event.button == MouseButton.PRIMARY && event.clickCount == 2) {
+                    showError(row.item)
+                }
+            }
+            row
+        }
     }
 
     private fun vboxOf(growing: Node?, vararg children: Node): Node {
@@ -214,11 +223,9 @@ class AntlrViewApp : Application() {
 
     private fun parseAndApplyGrammar() {
         try {
-            AntlrCompiler(editors.grammar.text ?: "", editors.text.text ?: "").use { parser ->
+            AntlrCompiler(editors.grammar.text ?: "", editors.text.text ?: "", JavaCompiler()).use { parser ->
 
                 parser.parse()
-
-                populateErrorList(parser.errors())
 
                 if (parser.hasTokens()) {
                     buildTokens(parser.tokens())
@@ -230,6 +237,14 @@ class AntlrViewApp : Application() {
                 } else {
                     clearTree()
                 }
+                if (parser.errors().isNotEmpty()) {
+                    populateErrorList(parser.errors())
+                }
+                when {
+                    parser.errors().isNotEmpty() -> outputPane.selectionModel.select(2)
+                    parser.hasTree() -> outputPane.selectionModel.select(1)
+                    !parser.hasTree() && parser.hasTokens() -> outputPane.selectionModel.select(0)
+                } 
 
             }
         } catch (ex: Exception) {
@@ -246,14 +261,18 @@ class AntlrViewApp : Application() {
         errors.items.clear()
         if (errorList.isNotEmpty()) {
             errors.items.setAll(errorList)
-            outputPane.selectionModel.select(1)
-            if (errorList[0].errorSource != ErrorSource.UNKNOWN && errorList[0].errorSource != ErrorSource.GENERATED_PARSER) {
-                val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
-                editor.moveTo(errorList[0].line - 1, errorList[0].pos - 1)
-                editor.requestFocus()
-            }
-        } else {
-            outputPane.selectionModel.select(0)
+            val err = errorList[0]
+            showError(err)
+        }
+    }
+
+    private fun showError(err: ErrorMessage) {
+        if (err.errorSource == ErrorSource.GRAMMAR || err.errorSource == ErrorSource.CODE) {
+            val editor = if (err.errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
+            val line = if (err.errorSource == ErrorSource.CODE) err.line -1 else err.line - 1
+            val pos = if (err.errorSource == ErrorSource.CODE) err.pos else err.pos - 1
+            editor.moveTo(line, pos)
+            editor.requestFocus()
         }
     }
 

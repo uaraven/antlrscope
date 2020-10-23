@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 
 class GrammarCompilationException(msg: String) : Exception(msg);
 
-class AntlrCompiler(grammar: String, text: String) : AntlrGrammarParser(grammar, text) {
+class AntlrCompiler(grammar: String, text: String, private val javaCompiler: JavaCompiler) : AntlrGrammarParser(grammar, text) {
 
     private val workDir = Files.createTempDirectory("highlights")
 
@@ -31,24 +31,24 @@ class AntlrCompiler(grammar: String, text: String) : AntlrGrammarParser(grammar,
             antlrTool.addListener(toolListener)
             runTool(antlrTool, path)
 
-            val compiler = JavaCompiler(path.parent)
-            val compilationSuccess = compiler.compile()
+            if (errors.isEmpty()) {
+                val compilationSuccess = javaCompiler.compile(path.parent)
 
-            if (compilationSuccess) {
-                val errorListener = ErrorListener(errors)
-                val runner = AntlrExecutor(text, packageName, grammarName, path.parent.resolve("classes"))
-                val results = runner.parse(errorListener)
-                tokens = results.tokens!!
-                tree = results.tree
-                ruleNames = results.ruleNames
+                if (compilationSuccess) {
+                    val errorListener = ErrorListener(errors)
+                    val runner = AntlrExecutor(text, packageName, grammarName, path.parent.resolve("classes"))
+                    val results = runner.parse(errorListener)
+                    tokens = results.tokens!!
+                    tree = results.tree
+                    ruleNames = results.ruleNames
+                }
+
+                return true
             }
-
-            return true
         } catch (ex: Exception) {
-            ex.printStackTrace()
             errors.add(ErrorMessage(-1, -1, ex.message, ErrorSource.GENERATED_PARSER))
-            return false
         }
+        return false
     }
 
     override fun close() {
