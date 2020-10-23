@@ -15,10 +15,23 @@ import net.ninjacat.headlights.G4Highlighter
 import net.ninjacat.headlights.ParagraphStyler
 import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.LineNumberFactory
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.util.stream.Collectors
 
 class GrammarTextEditorPane: SplitPane() {
     val grammar: CodeArea = createRichEditor()
     val text: CodeArea = createRichEditor()
+
+    private var _grammarFileName: String? = null
+    private var _textFileName: String? = null
+
+    val grammarFileName: String?
+        get() = _grammarFileName
+    val textFileName: String?
+        get() = _textFileName
+
 
     init {
         configureEditors()
@@ -97,5 +110,41 @@ class GrammarTextEditorPane: SplitPane() {
             VBox.setVgrow(growing, Priority.ALWAYS)
         }
         return vbox
+    }
+
+    fun loadGrammar(s: String?) {
+        grammar.replaceText(loadFile(s))
+        _grammarFileName = s
+    }
+
+    fun loadText(s: String?) {
+        text.replaceText(loadFile(s))
+        _textFileName = s
+    }
+
+    private fun loadFile(s: String?): String {
+        if (s == null) {
+            return ""
+        }
+        return Files.lines(Paths.get(s)).collect(Collectors.joining("\n"))
+    }
+
+    fun saveAll() {
+        if (_grammarFileName != null) {
+            saveGrammar(grammarFileName!!)
+        }
+        if (_textFileName != null) {
+            saveText(textFileName!!)
+        }
+    }
+
+    fun saveGrammar(absolutePath: String) {
+        File(absolutePath).writeText(grammar.text)
+        _grammarFileName = absolutePath
+    }
+
+    fun saveText(absolutePath: String) {
+        File(absolutePath).writeText(grammar.text)
+        _textFileName = absolutePath
     }
 }

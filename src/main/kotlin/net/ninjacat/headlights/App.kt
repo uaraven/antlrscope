@@ -8,23 +8,23 @@ import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Stage
-import net.ninjacat.headlights.antlr.AntlrInterpreter
+import net.ninjacat.headlights.antlr.AntlrCompiler
 import net.ninjacat.headlights.antlr.ErrorMessage
 import net.ninjacat.headlights.antlr.ErrorSource
 import net.ninjacat.headlights.antlr.LexerToken
 import net.ninjacat.headlights.ui.GrammarTextEditorPane
-import org.antlr.v4.runtime.InterpreterRuleContext
+import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.util.stream.Collectors
 import kotlin.system.exitProcess
 
 
@@ -32,7 +32,8 @@ class AntlrViewApp : Application() {
     private val editors = GrammarTextEditorPane()
     private val resultPane: VBox = VBox()
     private val outputPane: TabPane = TabPane()
-    private val resultsTab: Tab = Tab("Results", Label())
+    private val tokenView: TableView<LexerToken> = TableView()
+    private val parseTree: TreeView<String> = TreeView()
     private val errors: TableView<ErrorMessage> = TableView()
     private val mainMenu = MenuBar()
 
@@ -41,7 +42,10 @@ class AntlrViewApp : Application() {
         primaryStage.width = 1200.0
         primaryStage.height = 800.0
 
-        outputPane.tabs?.add(resultsTab)
+        configureTokenView()
+
+        outputPane.tabs?.add(Tab("Tokens", tokenView))
+        outputPane.tabs?.add(Tab("Parse Tree", parseTree))
         outputPane.tabs?.add(Tab("Errors", errors))
         outputPane.tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
 
@@ -51,10 +55,10 @@ class AntlrViewApp : Application() {
         configureErrorsView()
 
         if (parameters.named.containsKey("grammar")) {
-            editors.setGrammar(loadFile(parameters.named["grammar"]))
+            editors.loadGrammar(parameters.named["grammar"])
         }
         if (parameters.named.containsKey("text")) {
-            editors.setText(loadFile(parameters.named["text"]))
+            editors.loadText(parameters.named["text"])
         }
 
         val content = SplitPane()
@@ -74,6 +78,14 @@ class AntlrViewApp : Application() {
         val scene = Scene(mainContainer)
         scene.stylesheets.add(javaClass.getResource("/style.css").toExternalForm())
         scene.stylesheets.add(javaClass.getResource("/g4-highlight.css").toExternalForm())
+
+        scene.accelerators[KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN)] = Runnable {
+            editors.saveAll()
+        }
+        scene.accelerators[KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN)] = Runnable {
+            parseAndApplyGrammar()
+        }
+
         primaryStage.scene = scene
         primaryStage.show()
     }
@@ -82,29 +94,59 @@ class AntlrViewApp : Application() {
         val fileMenu = Menu("_File")
         val loadGrammarMenuItem = MenuItem("Load _Grammar")
         val loadTextMenuItem = MenuItem("Load _Text")
+
+        val saveGrammarMenuItem = MenuItem("Save Grammar")
+        val saveTextMenuItem = MenuItem("Save Text")
+
+        val saveAllMenuItem = MenuItem("_Save All")
+
         val exitMenuItem = MenuItem("E_xit")
+
+        val grammarExtensions = listOf(
+            FileChooser.ExtensionFilter("Antlr4 Grammar files", "*.g4"),
+            FileChooser.ExtensionFilter("All files", "*.*")
+        )
 
         loadGrammarMenuItem.onAction = EventHandler {
             val fileChooser = FileChooser()
             fileChooser.title = "Select grammar file"
-            fileChooser.extensionFilters.addAll(
-                FileChooser.ExtensionFilter("Antlr4 Grammar files", "*.g4"),
-                FileChooser.ExtensionFilter("All files", "*.*"),
-            )
+            fileChooser.extensionFilters.addAll(grammarExtensions)
             val grammarFile = fileChooser.showOpenDialog(stage)
             if (grammarFile != null) {
-                editors.setGrammar(loadFile(grammarFile.absolutePath))
+                editors.loadGrammar(grammarFile.absolutePath)
             }
         }
-
 
         loadTextMenuItem.onAction = EventHandler {
             val fileChooser = FileChooser()
             fileChooser.title = "Select text file"
             val file = fileChooser.showOpenDialog(stage)
             if (file != null) {
-                editors.setText(loadFile(file.absolutePath))
+                editors.loadText(file.absolutePath)
             }
+        }
+
+        saveGrammarMenuItem.onAction = EventHandler {
+            val fileChooser = FileChooser()
+            fileChooser.title = "Select grammar file"
+            fileChooser.extensionFilters.addAll(grammarExtensions)
+            val grammarFile = fileChooser.showSaveDialog(stage)
+            if (grammarFile != null) {
+                editors.saveGrammar(grammarFile.absolutePath)
+            }
+        }
+
+        loadTextMenuItem.onAction = EventHandler {
+            val fileChooser = FileChooser()
+            fileChooser.title = "Select text file"
+            val file = fileChooser.showSaveDialog(stage)
+            if (file != null) {
+                editors.saveText(file.absolutePath)
+            }
+        }
+
+        saveAllMenuItem.onAction = EventHandler {
+            editors.saveAll()
         }
 
         exitMenuItem.onAction = EventHandler { exitProcess(0); }
@@ -113,10 +155,27 @@ class AntlrViewApp : Application() {
             loadGrammarMenuItem,
             loadTextMenuItem,
             SeparatorMenuItem(),
+            saveGrammarMenuItem,
+            saveTextMenuItem,
+            SeparatorMenuItem(),
+            saveAllMenuItem,
+            SeparatorMenuItem(),
             exitMenuItem
         )
 
         menu.menus.addAll(fileMenu)
+    }
+
+    private fun configureTokenView() {
+        val columnType = TableColumn<LexerToken, String>("Type")
+        columnType.cellValueFactory = PropertyValueFactory("type")
+        val columnValue = TableColumn<LexerToken, String>("Value")
+        tokenView.widthProperty().addListener { _, _, newv ->
+            columnValue.minWidth = newv.toDouble() - columnType.width - 5
+        }
+        columnValue.cellValueFactory = PropertyValueFactory("text")
+        tokenView.columns.addAll(columnType, columnValue)
+        tokenView.placeholder = Label("")
     }
 
     private fun configureErrorsView() {
@@ -140,38 +199,38 @@ class AntlrViewApp : Application() {
         return vbox
     }
 
-    private fun loadFile(s: String?): String {
-        if (s == null) {
-            return ""
-        }
-        return Files.lines(Paths.get(s)).collect(Collectors.joining("\n"))
-    }
-
 
     private fun createBottomBar(): Node {
         val bottom = HBox()
         bottom.style = ""
         val parseButton = Button("Parse")
         parseButton.onAction = EventHandler {
-            onParseClicked()
+            parseAndApplyGrammar()
         }
         bottom.padding = Insets(2.0, 2.0, 2.0, 2.0)
         bottom.children.add(parseButton)
         return bottom
     }
 
-    private fun onParseClicked() {
+    private fun parseAndApplyGrammar() {
         try {
-            val parser = AntlrInterpreter(editors.grammar.text ?: "", editors.text.text ?: "")
+            AntlrCompiler(editors.grammar.text ?: "", editors.text.text ?: "").use { parser ->
 
-            parser.parse()
+                parser.parse()
 
-            populateErrorList(parser.errors())
+                populateErrorList(parser.errors())
 
-            if (parser.hasTokens()) {
-                buildTokens(parser.tokens())
-            } else {
-                buildTree(parser.parseTree()!!, parser.antlrGrammar()!!.ruleNames.asList())
+                if (parser.hasTokens()) {
+                    buildTokens(parser.tokens())
+                } else {
+                    buildTokens(listOf())
+                }
+                if (parser.hasTree()) {
+                    buildTree(parser.parseTree()!!, parser.ruleNames().asList())
+                } else {
+                    clearTree()
+                }
+
             }
         } catch (ex: Exception) {
             populateErrorList(
@@ -188,7 +247,7 @@ class AntlrViewApp : Application() {
         if (errorList.isNotEmpty()) {
             errors.items.setAll(errorList)
             outputPane.selectionModel.select(1)
-            if (errorList[0].errorSource != ErrorSource.UNKNOWN) {
+            if (errorList[0].errorSource != ErrorSource.UNKNOWN && errorList[0].errorSource != ErrorSource.GENERATED_PARSER) {
                 val editor = if (errorList[0].errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
                 editor.moveTo(errorList[0].line - 1, errorList[0].pos - 1)
                 editor.requestFocus()
@@ -198,16 +257,9 @@ class AntlrViewApp : Application() {
         }
     }
 
-    private fun setResult(content: Node) {
-        resultsTab.content = content
-    }
-
     private fun buildTokens(tokens: List<LexerToken>) {
-        val list = ListView<String>()
-        tokens.forEach {
-            list.items.add("${it.type}:\n ${it.text}")
-        }
-        setResult(list)
+        tokenView.items.clear()
+        this.tokenView.items.addAll(tokens)
     }
 
     private fun buildSubtree(parentUi: TreeItem<String>, parentParse: ParseTree, ruleNames: List<String>) {
@@ -220,13 +272,15 @@ class AntlrViewApp : Application() {
         }
     }
 
+    private fun clearTree() {
+        parseTree.root = null
+    }
+
     private fun buildTree(generatedTree: ParseTree, ruleNames: List<String>) {
         val root = treeItemFromParseNode(generatedTree, ruleNames)
         root.isExpanded = true
         buildSubtree(root, generatedTree, ruleNames)
-        val tree = TreeView<String>()
-        tree.root = root
-        setResult(tree)
+        parseTree.root = root
     }
 
     private fun treeItemFromParseNode(
@@ -241,7 +295,7 @@ class AntlrViewApp : Application() {
                 TreeItem("Token: ${child.text}")
             }
             else -> {
-                TreeItem("<${ruleNames[(child as InterpreterRuleContext).ruleIndex]}>")
+                TreeItem("<${ruleNames[(child as ParserRuleContext).ruleIndex]}>")
             }
         }
     }

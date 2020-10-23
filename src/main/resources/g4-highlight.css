@@ -3,6 +3,11 @@
   -fx-font-weight: bold;
 }
 
+.code-area .command {
+  -fx-fill: yellowgreen;
+  -fx-font-style: italic;
+}
+
 .code-area .separator {
   -fx-fill: darkcyan;
   -fx-font-weight: bold;

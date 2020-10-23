@@ -1,5 +1,7 @@
 package net.ninjacat.headlights.antlr
 
+import org.antlr.v4.runtime.Lexer
+import org.antlr.v4.runtime.Token
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.tool.Grammar
 
@@ -15,6 +17,7 @@ data class AntlrResult(
 enum class ErrorSource {
     GRAMMAR,
     CODE,
+    GENERATED_PARSER,
     UNKNOWN
 }
 
@@ -28,3 +31,13 @@ data class ErrorMessage(
 ) {
     fun getPosition() = if (line == -1 || pos == -1) "Unknown" else "${line}:${pos}"
 }
+
+fun convertTokens(lexer: Lexer, tokens: List<Token>): List<LexerToken> {
+    val types = reverseTokenTypeMap(lexer.tokenTypeMap)
+    return tokens.map {
+        LexerToken(it.text, types.getValue(it.type))
+    }
+}
+
+private fun reverseTokenTypeMap(tokenTypeMap: Map<String, Int>): Map<Int, String> =
+    tokenTypeMap.entries.map { it.value to it.key }.toMap()

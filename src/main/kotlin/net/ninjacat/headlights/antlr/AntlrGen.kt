@@ -1,12 +1,16 @@
 package net.ninjacat.headlights.antlr
 
-import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.ANTLRErrorListener
+import org.antlr.v4.runtime.Parser
+import org.antlr.v4.runtime.RecognitionException
+import org.antlr.v4.runtime.Recognizer
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.tool.ANTLRMessage
 import org.antlr.v4.tool.ANTLRToolListener
 import org.antlr.v4.tool.Grammar
+import java.io.Closeable
 import java.util.*
 
 class ErrorListener(val errors: MutableList<ErrorMessage>) : ANTLRErrorListener {
@@ -55,7 +59,7 @@ class ErrorListener(val errors: MutableList<ErrorMessage>) : ANTLRErrorListener 
 
 }
 
-class ParseListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolListener {
+class ToolListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolListener {
     override fun info(msg: String?) {
     }
 
@@ -80,18 +84,27 @@ class ParseListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolLi
 
 }
 
-abstract class AntlrGrammarParser(val grammar: String, val text: String) {
+abstract class AntlrGrammarParser(val grammar: String, val text: String): Closeable {
+    protected val errors = mutableListOf<ErrorMessage>()
+    protected var tree: ParseTree? = null
+    protected var tokens: List<LexerToken> = listOf()
+    protected var antlrGrammar: Grammar? = null
+    protected var ruleNames: Array<String> = arrayOf()
+
     abstract fun parse(): Boolean
 
-    abstract fun hasTree(): Boolean
+    fun hasTree() = tree != null
 
-    abstract fun hasTokens(): Boolean
+    fun hasTokens() = tokens.isNotEmpty()
 
-    abstract fun antlrGrammar(): Grammar?
+    fun antlrGrammar() = antlrGrammar
 
-    abstract fun errors(): List<ErrorMessage>
+    fun errors() = errors
 
-    abstract fun tokens(): List<LexerToken>
+    fun tokens() = tokens
 
-    abstract fun parseTree(): ParseTree?
+    fun parseTree(): ParseTree? = tree
+
+    fun ruleNames(): Array<String> = ruleNames
+
 }
