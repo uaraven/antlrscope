@@ -12,9 +12,18 @@ Get the latest jar from the [releases](https://github.com/uaraven/headlights/rel
 
     java -jar headlights-<version-number>.jar
     
-Copy grammar to the text area on the left and the text to parse to the text area on the right, then click "Parse" button. Boom. That's it. 
+Copy grammar to the text area on the left, and the text to parse to the text area on the right, then click "Parse" button. Boom. That's it. 
 
-## Limitations
+![](headlights.png)
 
-As Headlights uses Antlr in the interpreted mode it is impossible to execute any code defined in
-the grammar, including predicates. The interpreter runs as if there is not predicates at all. 
+## Interpreting vs compilation
+
+Headlights can use Antlr either in the interpreted mode or in compiled mode.
+
+In the interpreted mode it is impossible to execute any code defined in the grammar, including predicates.
+The interpreter runs as if there is not predicates at all.
+
+The compiled mode generates Lexer and Parser source files, compiles them with Java compiler and then uses compiled classes
+to tokenize and parse the code. It works exactly as if you generate a parser from the grammar as part of your maven/gradle build.
+
+The interpreted mode is faster and doesn't require additional disk space, so if you don't need predicates, you can use it. 

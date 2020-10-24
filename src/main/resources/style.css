@@ -1,6 +1,9 @@
 @font-face {
   src: url('/Hack-Regular.ttf');
 }
+@font-face {
+  src: url('/Roboto-Regular.ttf');
+}
 
 /* Colors in the following styles need to be updated for theming */
 #main {
@@ -8,6 +11,7 @@
   -fx-font-smoothing-type: lcd;
   -fx-font-size: 15;
   -fx-text-inner-color: lightgray;
+  -fx-font-family: Roboto;
 }
 
 .caret {
