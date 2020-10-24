@@ -9,11 +9,9 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
-import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import javafx.scene.input.MouseButton
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
@@ -21,20 +19,15 @@ import javafx.stage.FileChooser
 import javafx.stage.Stage
 import net.ninjacat.headlights.antlr.*
 import net.ninjacat.headlights.ui.GrammarTextEditorPane
-import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.ErrorNode
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.TerminalNode
+import net.ninjacat.headlights.ui.OutputPane
+import java.util.function.Consumer
 import kotlin.system.exitProcess
 
 
 class AntlrViewApp : Application() {
     private val editors = GrammarTextEditorPane()
+    private val outputPane: OutputPane = OutputPane()
     private val resultPane: VBox = VBox()
-    private val outputPane: TabPane = TabPane()
-    private val tokenView: TableView<LexerToken> = TableView()
-    private val parseTree: TreeView<String> = TreeView()
-    private val errors: TableView<ErrorMessage> = TableView()
     private val mainMenu = MenuBar()
     private val antlrMode = ComboBox<String>(FXCollections.observableArrayList("Interpreted", "Compiled"))
 
@@ -43,17 +36,10 @@ class AntlrViewApp : Application() {
         primaryStage.width = 1200.0
         primaryStage.height = 800.0
 
-        configureTokenView()
-
-        outputPane.tabs?.add(Tab("Tokens", tokenView))
-        outputPane.tabs?.add(Tab("Parse Tree", parseTree))
-        outputPane.tabs?.add(Tab("Errors", errors))
-        outputPane.tabClosingPolicy = TabPane.TabClosingPolicy.UNAVAILABLE
+        outputPane.onErrorClick = Consumer { error -> showError(error) }
 
         resultPane.children?.add(outputPane)
         VBox.setVgrow(outputPane, Priority.ALWAYS)
-
-        configureErrorsView()
 
         if (parameters.named.containsKey("grammar")) {
             editors.loadGrammar(parameters.named["grammar"])
@@ -167,41 +153,6 @@ class AntlrViewApp : Application() {
         menu.menus.addAll(fileMenu)
     }
 
-    private fun configureTokenView() {
-        val columnType = TableColumn<LexerToken, String>("Type")
-        columnType.cellValueFactory = PropertyValueFactory("type")
-        val columnValue = TableColumn<LexerToken, String>("Value")
-        tokenView.widthProperty().addListener { _, _, newv ->
-            columnValue.minWidth = newv.toDouble() - columnType.width - 5
-        }
-        columnValue.cellValueFactory = PropertyValueFactory("text")
-        tokenView.columns.addAll(columnType, columnValue)
-        tokenView.placeholder = Label("")
-
-    }
-
-    private fun configureErrorsView() {
-        val columnPosition = TableColumn<ErrorMessage, String>("Position")
-        columnPosition.cellValueFactory = PropertyValueFactory("position")
-        val columnMessage = TableColumn<ErrorMessage, String>("Message")
-        errors.widthProperty().addListener { _, _, newv ->
-            columnMessage.minWidth = newv.toDouble() - columnPosition.width - 5
-        }
-        columnMessage.cellValueFactory = PropertyValueFactory("message")
-        errors.columns.addAll(columnPosition, columnMessage)
-        errors.placeholder = Label("")
-
-        errors.setRowFactory { tv ->
-            val row = TableRow<ErrorMessage>()
-            row.onMouseClicked = EventHandler { event ->
-                if (!row.isEmpty && event.button == MouseButton.PRIMARY && event.clickCount == 2) {
-                    showError(row.item)
-                }
-            }
-            row
-        }
-    }
-
     private fun vboxOf(growing: Node?, vararg children: Node): Node {
         val vbox = VBox()
         vbox.children.addAll(children)
@@ -240,17 +191,17 @@ class AntlrViewApp : Application() {
                 parser.parse()
 
                 if (parser.hasTokens()) {
-                    buildTokens(parser.tokens())
+                    outputPane.showTokens(parser.tokens())
                 } else {
-                    buildTokens(listOf())
+                    outputPane.clearTokens()
                 }
                 if (parser.hasTree()) {
-                    buildTree(parser.parseTree()!!, parser.ruleNames().asList())
+                    outputPane.showTree(parser.parseTree()!!, parser.ruleNames().asList())
                 } else {
-                    clearTree()
+                    outputPane.clearTree()
                 }
                 if (parser.errors().isNotEmpty()) {
-                    populateErrorList(parser.errors())
+                    outputPane.showErrors(parser.errors())
                 }
                 when {
                     parser.errors().isNotEmpty() -> outputPane.selectionModel.select(2)
@@ -260,21 +211,12 @@ class AntlrViewApp : Application() {
 
             }
         } catch (ex: Exception) {
-            populateErrorList(
+            outputPane.showErrors(
                 listOf(
                     ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
                 )
             )
             ex.printStackTrace()
-        }
-    }
-
-    private fun populateErrorList(errorList: List<ErrorMessage>) {
-        errors.items.clear()
-        if (errorList.isNotEmpty()) {
-            errors.items.setAll(errorList)
-            val err = errorList[0]
-            showError(err)
         }
     }
 
@@ -288,48 +230,6 @@ class AntlrViewApp : Application() {
         }
     }
 
-    private fun buildTokens(tokens: List<LexerToken>) {
-        tokenView.items.clear()
-        this.tokenView.items.addAll(tokens)
-    }
-
-    private fun buildSubtree(parentUi: TreeItem<String>, parentParse: ParseTree, ruleNames: List<String>) {
-        for (i in 0 until parentParse.childCount) {
-            val child = parentParse.getChild(i)
-            val uiChild = treeItemFromParseNode(child, ruleNames)
-            uiChild.isExpanded = true
-            parentUi.children.add(uiChild)
-            buildSubtree(uiChild, child, ruleNames)
-        }
-    }
-
-    private fun clearTree() {
-        parseTree.root = null
-    }
-
-    private fun buildTree(generatedTree: ParseTree, ruleNames: List<String>) {
-        val root = treeItemFromParseNode(generatedTree, ruleNames)
-        root.isExpanded = true
-        buildSubtree(root, generatedTree, ruleNames)
-        parseTree.root = root
-    }
-
-    private fun treeItemFromParseNode(
-        child: ParseTree?,
-        ruleNames: List<String>
-    ): TreeItem<String> {
-        return when (child) {
-            is ErrorNode -> {
-                TreeItem("Error: ${child.text}")
-            }
-            is TerminalNode -> {
-                TreeItem("Token: ${child.text}")
-            }
-            else -> {
-                TreeItem("<${ruleNames[(child as ParserRuleContext).ruleIndex]}>")
-            }
-        }
-    }
 
 }
 
