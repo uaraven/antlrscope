@@ -1,9 +1,11 @@
 package net.ninjacat.headlights
 
 import javafx.application.Application
+import javafx.collections.FXCollections
 import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.geometry.Orientation
+import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Scene
 import javafx.scene.control.*
@@ -34,6 +36,7 @@ class AntlrViewApp : Application() {
     private val parseTree: TreeView<String> = TreeView()
     private val errors: TableView<ErrorMessage> = TableView()
     private val mainMenu = MenuBar()
+    private val antlrMode = ComboBox<String>(FXCollections.observableArrayList("Interpreted", "Compiled"))
 
     override fun start(primaryStage: Stage) {
         primaryStage.title = "ANTLR in the Headlights"
@@ -211,19 +214,28 @@ class AntlrViewApp : Application() {
 
     private fun createBottomBar(): Node {
         val bottom = HBox()
+        bottom.alignment = Pos.CENTER_LEFT
         bottom.style = ""
         val parseButton = Button("Parse")
         parseButton.onAction = EventHandler {
             parseAndApplyGrammar()
         }
         bottom.padding = Insets(2.0, 2.0, 2.0, 2.0)
-        bottom.children.add(parseButton)
+
+        antlrMode.value = "Compiled"
+        val modeLabel = Label("ANTLR mode: ")
+
+        bottom.children.addAll(parseButton, Label("   "), modeLabel, antlrMode)
         return bottom
     }
 
     private fun parseAndApplyGrammar() {
         try {
-            AntlrCompiler(editors.grammar.text ?: "", editors.text.text ?: "", JavaCompiler()).use { parser ->
+            if (antlrMode.value == "Compiled") {
+                AntlrCompiler(editors.grammar.text ?: "", editors.text.text ?: "", JavaCompiler())
+            } else {
+                AntlrInterpreter(editors.grammar.text ?: "", editors.text.text ?: "")
+            }.use { parser ->
 
                 parser.parse()
 
@@ -244,7 +256,7 @@ class AntlrViewApp : Application() {
                     parser.errors().isNotEmpty() -> outputPane.selectionModel.select(2)
                     parser.hasTree() -> outputPane.selectionModel.select(1)
                     !parser.hasTree() && parser.hasTokens() -> outputPane.selectionModel.select(0)
-                } 
+                }
 
             }
         } catch (ex: Exception) {
@@ -269,7 +281,7 @@ class AntlrViewApp : Application() {
     private fun showError(err: ErrorMessage) {
         if (err.errorSource == ErrorSource.GRAMMAR || err.errorSource == ErrorSource.CODE) {
             val editor = if (err.errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
-            val line = if (err.errorSource == ErrorSource.CODE) err.line -1 else err.line - 1
+            val line = if (err.errorSource == ErrorSource.CODE) err.line - 1 else err.line - 1
             val pos = if (err.errorSource == ErrorSource.CODE) err.pos else err.pos - 1
             editor.moveTo(line, pos)
             editor.requestFocus()
