@@ -41,10 +41,10 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
                     tokens = results.tokens!!
                     tree = results.tree
                     ruleNames = results.ruleNames
-                }
 
-                return true
+                }
             }
+            return errors.isEmpty()
         } catch (ex: Exception) {
             errors.add(ErrorMessage(-1, -1, ex.message, ErrorSource.GENERATED_PARSER))
         }

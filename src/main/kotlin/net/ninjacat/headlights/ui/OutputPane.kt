@@ -107,7 +107,7 @@ class OutputPane : TabPane() {
         errors.columns.addAll(columnPosition, columnMessage)
         errors.placeholder = Label("")
 
-        errors.setRowFactory { tv ->
+        errors.setRowFactory { _ ->
             val row = TableRow<ErrorMessage>()
             row.onMouseClicked = EventHandler { event ->
                 if (!row.isEmpty && event.button == MouseButton.PRIMARY && event.clickCount == 2) {
