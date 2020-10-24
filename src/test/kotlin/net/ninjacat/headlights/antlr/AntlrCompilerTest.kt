@@ -9,7 +9,7 @@ internal class AntlrCompilerTest {
     internal fun name() {
         val grammarText = javaClass.getResource("/Test.g4").readText() 
 
-        val parser = AntlrCompiler(grammarText, "one two")
+        val parser = AntlrCompiler(grammarText, "one two", JavaCompiler())
         val result = parser.parse()
 
         assertThat(result).isTrue
