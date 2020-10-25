@@ -21,16 +21,19 @@ javafx {
 }
 
 ext {
-    j2v8Version = '4.6.0'
+    graalJsVersion = '20.2.0'
+    graphvizJavaVersion = '0.17.0'
+    antlrVersion = '4.8-1'
+    richTextFxVersion = "0.10.5"
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation 'org.antlr:antlr4:4.8-1'
-    implementation 'org.antlr:antlr4-runtime:4.8-1'
-    implementation 'org.fxmisc.richtext:richtextfx:0.10.5'
-    implementation 'guru.nidi:graphviz-java:0.17.0'
-    compile 'org.graalvm.js:js:20.2.0'
+    implementation "org.antlr:antlr4:$antlrVersion"
+    implementation "org.antlr:antlr4-runtime:$antlrVersion"
+    implementation "org.fxmisc.richtext:richtextfx:$richTextFxVersion"
+    implementation "guru.nidi:graphviz-java:$graphvizJavaVersion"
+    implementation "org.graalvm.js:js:$graalJsVersion"
 
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 

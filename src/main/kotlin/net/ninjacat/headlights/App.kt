@@ -23,6 +23,7 @@ import net.ninjacat.headlights.ui.GrammarTextEditorPane
 import net.ninjacat.headlights.ui.OutputPane
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.awt.Desktop
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -75,6 +76,7 @@ class AntlrViewApp : Application() {
 
         primaryStage.scene = scene
         primaryStage.show()
+        primaryStage.requestFocus()
     }
 
     private fun createMainMenu(menu: MenuBar, stage: Stage) {
@@ -264,6 +266,8 @@ fun main(vararg args: String) {
 
     val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
     root.level = Level.ERROR
+
+    Desktop.getDesktop()
 
     Application.launch(AntlrViewApp::class.java, *args)
 }
