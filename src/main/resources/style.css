@@ -20,6 +20,10 @@
   -fx-stroke-width: 3;
 }
 
+#graphviz_view .viewport {
+  -fx-background-color: "dimgray";
+}
+
 /* end of theme-base colors */
 
 .paragraph-text {

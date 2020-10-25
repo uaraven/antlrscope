@@ -9,7 +9,7 @@ plugins {
 mainClassName = 'net.ninjacat.headlights.AppKt'
 
 group 'net.ninjacat'
-version '0.3.0'
+version '0.4.0'
 
 repositories {
     mavenCentral()
@@ -17,13 +17,23 @@ repositories {
 
 javafx {
     version = "14"
-    modules = [ 'javafx.controls']
+    modules = ['javafx.controls']
+}
+
+ext {
+    j2v8Version = '4.6.0'
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation 'org.antlr:antlr4:4.8-1'
+    implementation 'org.antlr:antlr4-runtime:4.8-1'
     implementation 'org.fxmisc.richtext:richtextfx:0.10.5'
+    implementation 'guru.nidi:graphviz-java:0.17.0'
+    compile 'org.graalvm.js:js:20.2.0'
+
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
     testImplementation 'org.assertj:assertj-core:3.17.2'
 }
