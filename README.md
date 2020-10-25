@@ -10,7 +10,7 @@ AntlrScope is a Java application, you will need Java 11 to run it.
 
 Get the latest jar from the [releases](https://github.com/uaraven/antlrscope/releases) and run it with 
 
-    java -jar headlights-<version-number>.jar
+    java -jar antlrscope-<version-number>.jar
     
 ANTLR grammar goes to the editor on the left, and the text to parse goes to the editor on the right, then click "Parse" button. Boom. That's it.
 
@@ -19,7 +19,7 @@ Output panel will display stream of tokens from lexer, parse tree (if available)
 Parse tree can be exported in [dot](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) format to be rendered with [graphviz](https://graphviz.org/).
 Parsing must produce a parse tree before a Graph → Export menu could be available. 
 
-![](headlights.png)
+![](antlrscope.png)
 
 ## Interpreting vs compilation
 
