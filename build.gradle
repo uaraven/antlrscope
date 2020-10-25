@@ -4,6 +4,7 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.8'
     id 'com.github.johnrengelman.shadow' version '6.1.0'
     id 'application'
+    id 'com.gluonhq.client-gradle-plugin' version '0.1.33'
 }
 
 mainClassName = 'net.ninjacat.headlights.AppKt'
