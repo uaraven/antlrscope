@@ -33,4 +33,3 @@ to tokenize and parse the code. It works exactly as if you generate a parser fro
 
 The interpreted mode is faster and doesn't require additional disk space, so if you don't need predicates, you can use it. 
 
-## Know
