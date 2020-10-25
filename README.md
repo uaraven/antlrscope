@@ -1,4 +1,4 @@
-# Headlights
+# AntlrScope
 
 A simple UI for testing ANTLR4 grammars.
 
@@ -6,9 +6,9 @@ Supports Lexer and Combined grammars.
 
 ## Using
 
-Headlights is a Java application, you will need Java 11 to run it.
+AntlrScope is a Java application, you will need Java 11 to run it.
 
-Get the latest jar from the [releases](https://github.com/uaraven/headlights/releases) and run it with 
+Get the latest jar from the [releases](https://github.com/uaraven/antlrscope/releases) and run it with 
 
     java -jar headlights-<version-number>.jar
     
@@ -23,7 +23,7 @@ Parsing must produce a parse tree before a Graph → Export menu could be availa
 
 ## Interpreting vs compilation
 
-Headlights can use Antlr either in the interpreted mode or in compiled mode.
+AntlrScope can use Antlr either in the interpreted mode or in compiled mode.
 
 In the interpreted mode it is impossible to execute any code defined in the grammar, including predicates.
 The interpreter runs as if there is not predicates at all.
@@ -32,4 +32,3 @@ The compiled mode generates Lexer and Parser source files, compiles them with Ja
 to tokenize and parse the code. It works exactly as if you generate a parser from the grammar as part of your maven/gradle build.
 
 The interpreted mode is faster and doesn't require additional disk space, so if you don't need predicates, you can use it. 
-
