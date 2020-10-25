@@ -1,4 +1,4 @@
-package net.ninjacat.headlights
+package net.ninjacat.antlrscope
 
 import javafx.application.Platform
 import org.fxmisc.richtext.GenericStyledArea

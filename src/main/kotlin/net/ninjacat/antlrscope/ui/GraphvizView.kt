@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.ui
+package net.ninjacat.antlrscope.ui
 
 import guru.nidi.graphviz.engine.Format
 import guru.nidi.graphviz.engine.Graphviz
@@ -6,8 +6,8 @@ import guru.nidi.graphviz.parse.Parser
 import javafx.scene.control.ScrollPane
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import net.ninjacat.headlights.GraphvizGen
-import net.ninjacat.headlights.antlr.ParseTreeNode
+import net.ninjacat.antlrscope.GraphvizGen
+import net.ninjacat.antlrscope.antlr.ParseTreeNode
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 

@@ -1,12 +1,12 @@
-package net.ninjacat.headlights.ui
+package net.ninjacat.antlrscope.ui
 
 import javafx.event.EventHandler
 import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.input.MouseButton
-import net.ninjacat.headlights.antlr.ErrorMessage
-import net.ninjacat.headlights.antlr.LexerToken
-import net.ninjacat.headlights.antlr.ParseTreeNode
+import net.ninjacat.antlrscope.antlr.ErrorMessage
+import net.ninjacat.antlrscope.antlr.LexerToken
+import net.ninjacat.antlrscope.antlr.ParseTreeNode
 import java.util.function.Consumer
 
 class OutputPane : TabPane() {

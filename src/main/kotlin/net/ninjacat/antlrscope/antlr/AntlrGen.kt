@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.antlr
+package net.ninjacat.antlrscope.antlr
 
 import org.antlr.v4.runtime.ANTLRErrorListener
 import org.antlr.v4.runtime.Parser
@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
-import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.tool.ANTLRMessage
 import org.antlr.v4.tool.ANTLRToolListener
 import org.antlr.v4.tool.Grammar

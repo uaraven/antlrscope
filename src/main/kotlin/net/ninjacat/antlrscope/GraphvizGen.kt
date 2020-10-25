@@ -1,8 +1,8 @@
-package net.ninjacat.headlights
+package net.ninjacat.antlrscope
 
-import net.ninjacat.headlights.antlr.ParseTreeError
-import net.ninjacat.headlights.antlr.ParseTreeNode
-import net.ninjacat.headlights.antlr.ParseTreeTerminal
+import net.ninjacat.antlrscope.antlr.ParseTreeError
+import net.ninjacat.antlrscope.antlr.ParseTreeNode
+import net.ninjacat.antlrscope.antlr.ParseTreeTerminal
 
 object GraphvizGen {
 

@@ -1,4 +1,4 @@
-package net.ninjacat.headlights
+package net.ninjacat.antlrscope
 
 import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder

@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.antlr
+package net.ninjacat.antlrscope.antlr
 
 import org.antlr.v4.Tool
 import org.antlr.v4.tool.Grammar
@@ -96,7 +96,7 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
     }                            
 
     companion object {
-        val LOGGER: Logger = LoggerFactory.getLogger("headlights.antlr.compiler")
+        val LOGGER: Logger = LoggerFactory.getLogger("antlrscope.antlr.compiler")
 
         val grammarNameExtractor: Pattern =
             Pattern.compile("(?:(?:lexer|parser)\\s+)?grammar\\s+([a-zA-Z_]\\w*);", Pattern.DOTALL)

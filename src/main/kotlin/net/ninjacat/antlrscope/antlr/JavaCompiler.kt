@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.antlr
+package net.ninjacat.antlrscope.antlr
 
 import java.io.IOException
 import java.nio.file.Files

@@ -6,7 +6,7 @@ plugins {
     id 'application'
 }
 
-mainClassName = 'net.ninjacat.headlights.AppKt'
+mainClassName = 'net.ninjacat.antlrscope.AppKt'
 
 group 'net.ninjacat'
 version '0.4.0'

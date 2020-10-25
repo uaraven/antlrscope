@@ -1,4 +1,4 @@
-package net.ninjacat.headlights
+package net.ninjacat.antlrscope
 
 import ch.qos.logback.classic.Level
 import javafx.application.Application
@@ -18,9 +18,9 @@ import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import javafx.stage.FileChooser
 import javafx.stage.Stage
-import net.ninjacat.headlights.antlr.*
-import net.ninjacat.headlights.ui.GrammarTextEditorPane
-import net.ninjacat.headlights.ui.OutputPane
+import net.ninjacat.antlrscope.antlr.*
+import net.ninjacat.antlrscope.ui.GrammarTextEditorPane
+import net.ninjacat.antlrscope.ui.OutputPane
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Desktop
@@ -36,7 +36,7 @@ class AntlrViewApp : Application() {
     private val antlrMode = ComboBox(FXCollections.observableArrayList("Interpreted", "Compiled"))
 
     override fun start(primaryStage: Stage) {
-        primaryStage.title = "ANTLR in the Headlights"
+        primaryStage.title = "AntlrScope"
         primaryStage.width = 1200.0
         primaryStage.height = 800.0
 
@@ -256,7 +256,7 @@ class AntlrViewApp : Application() {
     }
 
     companion object { 
-        private val LOGGER: Logger = LoggerFactory.getLogger("headlights")
+        private val LOGGER: Logger = LoggerFactory.getLogger("antlrscope")
     }
 
 

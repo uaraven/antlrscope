@@ -1,16 +1,12 @@
-package net.ninjacat.headlights.antlr
+package net.ninjacat.antlrscope.antlr
 
-import javafx.scene.control.TreeItem
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.RuleContext
 import org.antlr.v4.runtime.Token
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
 import java.util.*
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 enum class ErrorSource {
     GRAMMAR,

@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.ui
+package net.ninjacat.antlrscope.ui
 
 import javafx.event.Event
 import javafx.event.EventHandler
@@ -11,8 +11,8 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
-import net.ninjacat.headlights.G4Highlighter
-import net.ninjacat.headlights.ParagraphStyler
+import net.ninjacat.antlrscope.G4Highlighter
+import net.ninjacat.antlrscope.ParagraphStyler
 import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.LineNumberFactory
 import java.io.File

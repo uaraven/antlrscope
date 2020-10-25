@@ -1,4 +1,4 @@
-Headlights uses following opensource libraries licensed under their respective licenses
+AntlrScope uses following opensource libraries licensed under their respective licenses
 
 
 ## ANTLR 4

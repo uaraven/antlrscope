@@ -1,4 +1,4 @@
-package net.ninjacat.headlights.antlr
+package net.ninjacat.antlrscope.antlr
 
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.tree.ParseTree
