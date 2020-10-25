@@ -3,6 +3,8 @@ package net.ninjacat.headlights.antlr
 import org.antlr.v4.Tool
 import org.antlr.v4.tool.Grammar
 import org.antlr.v4.tool.ast.GrammarRootAST
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -24,11 +26,14 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
             val packageName = extractPackageName()
 
             val path = saveGrammar(grammarName)
-            val antlrTool = Tool()
-
             val toolListener = ToolListener(errors)
 
+            if (Thread.currentThread().contextClassLoader == null) {
+                Thread.currentThread().contextClassLoader = ClassLoader.getSystemClassLoader()
+            }
+            val antlrTool = Tool()
             antlrTool.addListener(toolListener)
+
             runTool(antlrTool, path)
 
             if (errors.isEmpty()) {
@@ -39,7 +44,7 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
                     val runner = AntlrExecutor(text, packageName, grammarName, path.parent.resolve("classes"))
                     val results = runner.parse(errorListener)
                     tokens = results.tokens!!
-                    tree = results.tree
+                    tree = convertParseTree(results.tree!!, results.ruleNames)
                     ruleNames = results.ruleNames
 
                 }
@@ -47,6 +52,7 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
             return errors.isEmpty()
         } catch (ex: Exception) {
             errors.add(ErrorMessage(-1, -1, ex.message, ErrorSource.GENERATED_PARSER))
+            LOGGER.error("Error while compiling ANTLR grammar", ex)
         }
         return false
     }
@@ -90,6 +96,8 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
     }                            
 
     companion object {
+        val LOGGER: Logger = LoggerFactory.getLogger("headlights.antlr.compiler")
+
         val grammarNameExtractor: Pattern =
             Pattern.compile("(?:(?:lexer|parser)\\s+)?grammar\\s+([a-zA-Z_]\\w*);", Pattern.DOTALL)
 

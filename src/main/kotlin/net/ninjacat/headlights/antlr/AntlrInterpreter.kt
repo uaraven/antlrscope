@@ -20,7 +20,7 @@ class AntlrInterpreter(grammar: String, text: String): AntlrGrammarParser(gramma
                 val tokens = CommonTokenStream(lexEngine)
                 val parser = antlrGrammar!!.createParserInterpreter(tokens)
                 parser.addErrorListener(errorListener)
-                tree = parser.parse(antlrGrammar!!.getRule(0).index)
+                tree = convertParseTree(parser.parse(antlrGrammar!!.getRule(0).index), antlrGrammar?.ruleNames!!)
                 errors.addAll(errorListener.errors)
             } else {
                 val tokens = convertTokens(lexEngine, lexEngine.allTokens)

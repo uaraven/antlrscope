@@ -86,7 +86,7 @@ class ToolListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolLis
 
 abstract class AntlrGrammarParser(val grammar: String, val text: String): Closeable {
     protected val errors = mutableListOf<ErrorMessage>()
-    protected var tree: ParseTree? = null
+    protected var tree: ParseTreeNode? = null
     protected var tokens: List<LexerToken> = listOf()
     protected var antlrGrammar: Grammar? = null
     protected var ruleNames: Array<String> = arrayOf()
@@ -103,7 +103,7 @@ abstract class AntlrGrammarParser(val grammar: String, val text: String): Closea
 
     fun tokens() = tokens
 
-    fun parseTree(): ParseTree? = tree
+    fun parseTree(): ParseTreeNode? = tree
 
     fun ruleNames(): Array<String> = ruleNames
 

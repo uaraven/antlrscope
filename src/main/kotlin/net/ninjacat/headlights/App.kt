@@ -1,5 +1,6 @@
 package net.ninjacat.headlights
 
+import ch.qos.logback.classic.Level
 import javafx.application.Application
 import javafx.collections.FXCollections
 import javafx.event.EventHandler
@@ -20,6 +21,8 @@ import javafx.stage.Stage
 import net.ninjacat.headlights.antlr.*
 import net.ninjacat.headlights.ui.GrammarTextEditorPane
 import net.ninjacat.headlights.ui.OutputPane
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.function.Consumer
 import kotlin.system.exitProcess
 
@@ -27,9 +30,9 @@ import kotlin.system.exitProcess
 class AntlrViewApp : Application() {
     private val editors = GrammarTextEditorPane()
     private val outputPane: OutputPane = OutputPane()
-    private val resultPane: VBox = VBox()
     private val mainMenu = MenuBar()
-    private val antlrMode = ComboBox<String>(FXCollections.observableArrayList("Interpreted", "Compiled"))
+    private val exportDotMenu = MenuItem("Export dot file")
+    private val antlrMode = ComboBox(FXCollections.observableArrayList("Interpreted", "Compiled"))
 
     override fun start(primaryStage: Stage) {
         primaryStage.title = "ANTLR in the Headlights"
@@ -37,9 +40,6 @@ class AntlrViewApp : Application() {
         primaryStage.height = 800.0
 
         outputPane.onErrorClick = Consumer { error -> showError(error) }
-
-        resultPane.children?.add(outputPane)
-        VBox.setVgrow(outputPane, Priority.ALWAYS)
 
         if (parameters.named.containsKey("grammar")) {
             editors.loadGrammar(parameters.named["grammar"])
@@ -52,7 +52,7 @@ class AntlrViewApp : Application() {
         content.orientation = Orientation.VERTICAL
         content.items.addAll(
             vboxOf(growing = editors, editors, createBottomBar()),
-            resultPane
+            outputPane
         )
 
         createMainMenu(mainMenu, primaryStage)
@@ -89,8 +89,14 @@ class AntlrViewApp : Application() {
 
         val exitMenuItem = MenuItem("E_xit")
 
+        val graphMenu = Menu("_Graph")
+
         val grammarExtensions = listOf(
             FileChooser.ExtensionFilter("Antlr4 Grammar files", "*.g4"),
+            FileChooser.ExtensionFilter("All files", "*.*")
+        )
+        val dotExtensions = listOf(
+            FileChooser.ExtensionFilter("Dot files", "*.dot"),
             FileChooser.ExtensionFilter("All files", "*.*")
         )
 
@@ -138,6 +144,20 @@ class AntlrViewApp : Application() {
 
         exitMenuItem.onAction = EventHandler { exitProcess(0); }
 
+        exportDotMenu.isDisable = true
+        exportDotMenu.onAction = EventHandler {
+            if (outputPane.getParseTree() != null) {
+                val fileChooser = FileChooser()
+                fileChooser.title = "Select dot file"
+                fileChooser.extensionFilters.addAll(dotExtensions)
+                val file = fileChooser.showSaveDialog(stage)
+                if (file != null) {
+                    val dotFile = GraphvizGen.generateDotFile(outputPane.getParseTree()!!, export = true)
+                    file.writeText(dotFile)
+                }
+            }
+        }
+
         fileMenu.items.addAll(
             loadGrammarMenuItem,
             loadTextMenuItem,
@@ -149,8 +169,9 @@ class AntlrViewApp : Application() {
             SeparatorMenuItem(),
             exitMenuItem
         )
+        graphMenu.items.addAll(exportDotMenu)
 
-        menu.menus.addAll(fileMenu)
+        menu.menus.addAll(fileMenu, graphMenu)
     }
 
     private fun vboxOf(growing: Node?, vararg children: Node): Node {
@@ -196,9 +217,11 @@ class AntlrViewApp : Application() {
                     outputPane.clearTokens()
                 }
                 if (parser.hasTree()) {
-                    outputPane.showTree(parser.parseTree()!!, parser.ruleNames().asList())
+                    outputPane.showTree(parser.parseTree()!!)
+                    exportDotMenu.isDisable = false
                 } else {
                     outputPane.clearTree()
+                    exportDotMenu.isDisable = true
                 }
                 if (parser.errors().isNotEmpty()) {
                     outputPane.showErrors(parser.errors())
@@ -216,7 +239,7 @@ class AntlrViewApp : Application() {
                     ErrorMessage(-1, -1, ex.message, ErrorSource.UNKNOWN)
                 )
             )
-            ex.printStackTrace()
+            LOGGER.error("Failed to process grammar", ex)
         }
     }
 
@@ -230,9 +253,17 @@ class AntlrViewApp : Application() {
         }
     }
 
+    companion object { 
+        private val LOGGER: Logger = LoggerFactory.getLogger("headlights")
+    }
+
 
 }
 
 fun main(vararg args: String) {
+
+    val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+    root.level = Level.ERROR
+
     Application.launch(AntlrViewApp::class.java, *args)
 }
