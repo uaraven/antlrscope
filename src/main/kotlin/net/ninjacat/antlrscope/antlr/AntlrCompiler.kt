@@ -44,7 +44,7 @@ class AntlrCompiler(grammar: String, text: String, private val javaCompiler: Jav
                     val runner = AntlrExecutor(text, packageName, grammarName, path.parent.resolve("classes"))
                     val results = runner.parse(errorListener)
                     tokens = results.tokens!!
-                    tree = convertParseTree(results.tree!!, results.ruleNames)
+                    tree = if (results.tree != null) convertParseTree(results.tree!!, results.ruleNames) else null
                     ruleNames = results.ruleNames
 
                 }
