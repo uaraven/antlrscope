@@ -17,7 +17,7 @@ ANTLR grammar goes to the editor on the left, and the text to parse goes to the 
 Output panel will display stream of tokens from lexer, parse tree (if available) and/or list of errors.
 
 Parse tree can be exported in [dot](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) format to be rendered with [graphviz](https://graphviz.org/).
-Parsing must produce a parse tree before a Graph → Export menu could be available. 
+Parsing must complete successfully before a Graph → Export menu could be available. 
 
 ![](antlrscope.png)
 
@@ -32,3 +32,12 @@ The compiled mode generates Lexer and Parser source files, compiles them with Ja
 to tokenize and parse the code. It works exactly as if you generate a parser from the grammar as part of your maven/gradle build.
 
 The interpreted mode is faster and doesn't require additional disk space, so if you don't need predicates, you can use it. 
+
+## Limitations
+
+AntlrScope always uses Java as a target language for generated lexers and parsers. If your
+grammar includes code in other languages, you won't be able to generate lexer/parser and parse
+the text successfully. 
+
+You can try using interpreted mode, so that all the code in the grammar
+is ignored, but, obviously, this might produce results that are different from expected.
