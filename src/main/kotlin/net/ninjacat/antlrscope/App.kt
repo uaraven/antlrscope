@@ -131,7 +131,7 @@ class AntlrViewApp : Application() {
             }
         }
 
-        loadTextMenuItem.onAction = EventHandler {
+        saveTextMenuItem.onAction = EventHandler {
             val fileChooser = FileChooser()
             fileChooser.title = "Select text file"
             val file = fileChooser.showSaveDialog(stage)
