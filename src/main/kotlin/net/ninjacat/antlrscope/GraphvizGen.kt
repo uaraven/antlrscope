@@ -59,15 +59,23 @@ object GraphvizGen {
                 "shape=${activeStyle[nodeType + "_shape"]}"
     }
 
+    private fun sanitize(text: String): String {
+        return text.replace("\"", "").replace("'", "")
+    }
+
+    private fun escape(text: String): String {
+        return text.replace("\"", "\\\"").replace("'", "\\'")
+    }
+
     private fun processNodes(node: ParseTreeNode, nodes: MutableList<String>, edges: MutableList<String>) {
         when (node) {
-            is ParseTreeError -> nodes.add("\"${node.text}_${node.id}\" [${nodeStyle("error")} label=\"${node.text}\"]")
-            is ParseTreeTerminal -> nodes.add("\"${node.text}_${node.id}\" [${nodeStyle("terminal")} label=\"${node.text}\"]")
-            else -> nodes.add("\"${node.text}_${node.id}\" [${nodeStyle("rule")} label=\"${node.text}\"]")
+            is ParseTreeError -> nodes.add("\"${sanitize(node.text)}_${node.id}\" [${nodeStyle("error")} label=\"${escape(node.text)}\"]")
+            is ParseTreeTerminal -> nodes.add("\"${sanitize(node.text)}_${node.id}\" [${nodeStyle("terminal")} label=\"${escape(node.text)}\"]")
+            else -> nodes.add("\"${sanitize(node.text)}_${node.id}\" [${nodeStyle("rule")} label=\"${escape(node.text)}\"]")
         }
-        val edgeIds = node.children.map { "\"${it.text}_${it.id}\"" }.joinToString(" ")
+        val edgeIds = node.children.map { "\"${sanitize(it.text)}_${it.id}\"" }.joinToString(" ")
         if (node.children.isNotEmpty()) {
-            edges.add("\"${node.text}_${node.id}\" -- {$edgeIds} [color=${activeStyle["edge_color"]}]")
+            edges.add("\"${sanitize(node.text)}_${node.id}\" -- {$edgeIds} [color=${activeStyle["edge_color"]}]")
         }
         node.children.forEach { processNodes(it, nodes, edges) }
     }
