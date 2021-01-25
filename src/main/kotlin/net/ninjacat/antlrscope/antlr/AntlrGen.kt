@@ -66,16 +66,7 @@ class ToolListener(private val errors: MutableList<ErrorMessage>) : ANTLRToolLis
         errors.add(
                 ErrorMessage(
                         msg?.line!!, msg.charPosition + 1,
-                        formatErrorArgs(msg.errorType.msg, msg.args), ErrorSource.GRAMMAR))
-    }
-
-    private fun formatErrorArgs(msg: String, args: Array<Any>): String? {
-        var result = msg
-        for (index in args.indices) {
-            val indexStr = if (index == 0) "" else index.toString()
-            result = result.replace("<arg${indexStr}>", args[index].toString())
-        }
-        return result
+                    msg.getMessageTemplate(true).render(), ErrorSource.GRAMMAR))
     }
 
     override fun warning(msg: ANTLRMessage?) {

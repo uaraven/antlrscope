@@ -107,7 +107,7 @@ class AntlrViewApp : Application() {
             fileChooser.title = "Select grammar file"
             fileChooser.extensionFilters.addAll(grammarExtensions)
             val grammarFile = fileChooser.showOpenDialog(stage)
-            if (grammarFile != null) {
+                if (grammarFile != null) {
                 editors.loadGrammar(grammarFile.absolutePath)
             }
         }
@@ -250,7 +250,9 @@ class AntlrViewApp : Application() {
             val editor = if (err.errorSource == ErrorSource.GRAMMAR) editors.grammar else editors.text
             val line = if (err.errorSource == ErrorSource.CODE) err.line - 1 else err.line - 1
             val pos = if (err.errorSource == ErrorSource.CODE) err.pos else err.pos - 1
-            editor.moveTo(line, pos)
+            if (pos > 0 && line > 0) {
+                editor.moveTo(line, pos)
+            }
             editor.requestFocus()
         }
     }
