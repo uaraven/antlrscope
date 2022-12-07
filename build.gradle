@@ -1,15 +1,14 @@
 plugins {
     id 'java'
-    id "org.jetbrains.kotlin.jvm" version "1.7.10"
+    id "org.jetbrains.kotlin.jvm" version "1.7.22"
     id 'org.openjfx.javafxplugin' version '0.0.13'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'application'
 }
 
 mainClassName = 'net.ninjacat.antlrscope.AppKt'
 
 group 'net.ninjacat'
-version '0.4.5'
+version '0.4.6'
 
 repositories {
     mavenCentral()
@@ -21,7 +20,7 @@ javafx {
 }
 
 ext {
-    graalJsVersion = '22.2.0'
+    graalJsVersion = '21.2.0'
     graphvizJavaVersion = '0.18.1'
     antlrVersion = '4.11.1'
     richTextFxVersion = '0.11.0'
@@ -41,7 +40,3 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.23.1'
 }
 
-
-shadowJar {
-    archiveClassifier.set('')
-}
