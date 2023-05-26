@@ -2,14 +2,13 @@ plugins {
     id 'java'
     id "org.jetbrains.kotlin.jvm" version "1.8.21"
     id 'org.openjfx.javafxplugin' version '0.0.14'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'application'
 }
 
 mainClassName = 'net.ninjacat.antlrscope.AppKt'
 
 group 'net.ninjacat'
-version '0.4.5'
+version '0.4.6'
 
 repositories {
     mavenCentral()
@@ -29,25 +28,21 @@ javafx {
 ext {
     graalJsVersion = '21.2.0'
     graphvizJavaVersion = '0.18.1'
-    antlrVersion = '4.9.2'
-    richTextFxVersion = '0.10.6'
+    antlrVersion = '4.11.1'
+    richTextFxVersion = '0.11.0'
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.21'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.5.30'
     implementation "org.antlr:antlr4:$antlrVersion"
     implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.fxmisc.richtext:richtextfx:$richTextFxVersion"
     implementation "guru.nidi:graphviz-java:$graphvizJavaVersion"
     implementation "org.graalvm.js:js:$graalJsVersion"
 
-    implementation 'ch.qos.logback:logback-classic:1.2.5'
+    implementation 'ch.qos.logback:logback-classic:1.4.5'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
-    testImplementation 'org.assertj:assertj-core:3.20.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.0'
+    testImplementation 'org.assertj:assertj-core:3.23.1'
 }
 
-
-shadowJar {
-    archiveClassifier.set('')
-}
