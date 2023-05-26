@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id "org.jetbrains.kotlin.jvm" version "1.8.21"
     id 'org.openjfx.javafxplugin' version '0.0.14'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'application'
 }
 
@@ -46,3 +47,6 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.23.1'
 }
 
+shadowJar {
+    archiveClassifier.set('')
+}
