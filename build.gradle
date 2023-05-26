@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id "org.jetbrains.kotlin.jvm" version "1.5.30"
-    id 'org.openjfx.javafxplugin' version '0.0.10'
+    id "org.jetbrains.kotlin.jvm" version "1.8.21"
+    id 'org.openjfx.javafxplugin' version '0.0.14'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'application'
 }
@@ -15,8 +15,14 @@ repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 javafx {
-    version = "14"
+    version = "17.0.2"
     modules = ['javafx.controls']
 }
 
@@ -28,7 +34,7 @@ ext {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.5.30'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.21'
     implementation "org.antlr:antlr4:$antlrVersion"
     implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.fxmisc.richtext:richtextfx:$richTextFxVersion"
