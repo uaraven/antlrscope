@@ -6,7 +6,8 @@ Supports Lexer and Combined grammars.
 
 ## Using
 
-AntlrScope is a Java application, you will need Java 11 to run it.
+AntlrScope is a Java application, you will need Java 17+ to run it. 
+Java 17-19 is required for the build. Java 20+ isn't supported yet. 
 
 Get the latest zip archive from the [releases](https://github.com/uaraven/antlrscope/releases) unpack it somewhere
 and run

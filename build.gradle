@@ -1,15 +1,15 @@
 plugins {
     id 'java'
-    id "org.jetbrains.kotlin.jvm" version "1.8.21"
+    id "org.jetbrains.kotlin.jvm" version "1.9.10"
     id 'org.openjfx.javafxplugin' version '0.0.14'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'application'
 }
 
 mainClassName = 'net.ninjacat.antlrscope.AppKt'
 
 group 'net.ninjacat'
-version '0.4.7'
+version '0.4.8'
 
 repositories {
     mavenCentral()
@@ -27,14 +27,14 @@ javafx {
 }
 
 ext {
-    graalJsVersion = '23.0.0'
+    graalJsVersion = '23.0.1'
     graphvizJavaVersion = '0.18.1'
-    antlrVersion = '4.11.1'
+    antlrVersion = '4.13.0'
     richTextFxVersion = '0.11.0'
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.8.21'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.10'
     implementation "org.antlr:antlr4:$antlrVersion"
     implementation "org.antlr:antlr4-runtime:$antlrVersion"
     implementation "org.fxmisc.richtext:richtextfx:$richTextFxVersion"
